@@ -17,6 +17,7 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  base: '/',
   server: {
     host: '0.0.0.0',
     allowedHosts: ['comply-undamaged-gladiator.ngrok-free.dev'],
