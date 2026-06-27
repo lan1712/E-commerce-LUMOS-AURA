@@ -1,0 +1,16 @@
+CREATE TABLE addresses (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    label VARCHAR(50),
+    name VARCHAR(200) NOT NULL,
+    line1 VARCHAR(500) NOT NULL,
+    line2 VARCHAR(500),
+    city VARCHAR(100) NOT NULL,
+    country VARCHAR(2) NOT NULL DEFAULT 'US',
+    zip VARCHAR(20) NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_address_user_id ON addresses(user_id);
