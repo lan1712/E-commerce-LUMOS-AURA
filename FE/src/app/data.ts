@@ -1,3 +1,5 @@
+import { UPLOADS_BASE_URL } from "./api";
+
 export interface Product {
   dbId?: number;
   id: string;
@@ -21,8 +23,11 @@ export function getProductImages(product: Product): string[] {
     .filter(Boolean)
     .filter((url) => !url.startsWith("/images/products/"))
     .map((url) => {
-      if (url.startsWith("/uploads/")) return url;
-      return url.replace(/^http:\/\/localhost:8081\/uploads\//, "/uploads/");
+      const normalizedUrl = url.replace(/^http:\/\/localhost:8081\/uploads\//, "/uploads/");
+      if (UPLOADS_BASE_URL && normalizedUrl.startsWith("/uploads/")) {
+        return `${UPLOADS_BASE_URL}${normalizedUrl}`;
+      }
+      return normalizedUrl;
     });
 
   return Array.from(new Set(databaseImages));

@@ -1,5 +1,7 @@
-// Use the current origin. Vite proxies /api to the local Spring Boot server.
-const BASE_URL = "/api";
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+const BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
+
+export const UPLOADS_BASE_URL = API_ORIGIN;
 
 function getToken(): string | null {
   return localStorage.getItem("lumos_token");
