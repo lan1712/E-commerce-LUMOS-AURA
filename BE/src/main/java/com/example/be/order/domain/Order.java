@@ -71,8 +71,17 @@ public class Order {
     @Column(nullable = false, length = 20)
     private String status = "PENDING";
 
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
+
+    @Column(name = "transaction_id", length = 100)
+    private String transactionId;
+
     @Column(name = "promo_code", length = 50)
     private String promoCode;
+
+    @Column(name = "payment_url", length = 1000)
+    private String paymentUrl;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();

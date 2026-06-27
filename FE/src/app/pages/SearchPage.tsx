@@ -1,22 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useNav, useCart } from "../context";
-import { products } from "../data";
+import { formatPrice, type Product } from "../data";
 import { Footer } from "../components/Footer";
+import { productsApi } from "../api";
 
 export function SearchPage() {
   const { navigate } = useNav();
   const { addToCart } = useCart();
   const [query, setQuery] = useState("");
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    productsApi.list()
+      .then((data: Product[]) => { if (data?.length) setAllProducts(data); })
+      .catch(() => { });
   }, []);
 
   const trimmed = query.trim().toLowerCase();
-  const results = trimmed.length === 0 ? [] : products.filter((p) =>
+  const results = trimmed.length === 0 ? [] : allProducts.filter((p) =>
     p.name.toLowerCase().includes(trimmed) ||
     p.scentNotes.toLowerCase().includes(trimmed) ||
     p.category.toLowerCase().includes(trimmed) ||
@@ -25,7 +30,7 @@ export function SearchPage() {
 
   const handleAdd = (e: React.MouseEvent, productId: string) => {
     e.stopPropagation();
-    const product = products.find((p) => p.id === productId);
+    const product = allProducts.find((p) => p.id === productId);
     if (product) addToCart(product, 1);
     setAddedId(productId);
     setTimeout(() => setAddedId(null), 1800);
@@ -120,7 +125,7 @@ export function SearchPage() {
               All products
             </p>
             <div className="grid grid-cols-4 gap-5">
-              {products.map((p) => (
+              {allProducts.map((p) => (
                 <ProductResult
                   key={p.id}
                   product={p}
@@ -269,7 +274,7 @@ function ProductResult({
               color: "#3d3530",
             }}
           >
-            ${product.price}
+            {formatPrice(product.price)}
           </span>
           <button
             onClick={onAdd}

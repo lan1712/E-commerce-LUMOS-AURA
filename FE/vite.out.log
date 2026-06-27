@@ -1,0 +1,21 @@
+
+> @figma/my-make-file@0.0.1 dev
+> vite --host 0.0.0.0 --port 5173
+
+
+  [32m[1mVITE[22m v6.3.5[39m  [2mready in [0m[1m484[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.16.0.60:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.29.208.1:[1m5173[22m/[39m
+[2m12:26:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/context.tsx, /src/styles/index.css[22m
+[2m12:26:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/app/context.tsx[22m Could not Fast Refresh ("useAuth" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m12:26:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css, /src/app/pages/HomePage.tsx, /src/app/pages/SearchPage.tsx, /src/app/pages/GiftCollectionPage.tsx, /src/app/pages/AboutPage.tsx, /src/app/pages/OrdersPage.tsx, /src/app/pages/ContactUsPage.tsx, /src/app/pages/ShopPage.tsx, /src/app/pages/MomoReturnPage.tsx, /src/app/pages/BrandPoliciesPage.tsx, /src/app/pages/SignInPage.tsx, /src/app/components/Navbar.tsx, /src/app/pages/ProductDetailPage.tsx, /src/app/pages/WishlistPage.tsx, /src/app/pages/CheckoutPage.tsx, /src/app/pages/VNPayReturnPage.tsx, /src/app/pages/AccountSettingsPage.tsx, /src/app/pages/AddressesPage.tsx, /src/app/pages/CartPage.tsx, /src/app/pages/AdminPanel.tsx, /@fs/E:\SCHOOLS\Thuong_mai_dien_tu\E-commerce-LUMOS-AURA\FE\src\app\components\ProductCard.tsx, /@fs/E:\SCHOOLS\Thuong_mai_dien_tu\E-commerce-LUMOS-AURA\FE\src\app\components\Footer.tsx[22m
+[2m1:04:55 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/SignInPage.tsx, /src/styles/index.css[22m
+[2m2:02:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/E:\SCHOOLS\Thuong_mai_dien_tu\E-commerce-LUMOS-AURA\FE\src\app\components\CustomerFeedback.tsx, /src/styles/index.css[22m
+[2m2:02:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/E:\SCHOOLS\Thuong_mai_dien_tu\E-commerce-LUMOS-AURA\FE\src\app\components\ProductImage.tsx, /src/styles/index.css[22m
+[2m2:02:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/E:\SCHOOLS\Thuong_mai_dien_tu\E-commerce-LUMOS-AURA\FE\src\app\components\ProductCard.tsx, /src/styles/index.css[22m
+[2m2:02:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/ProductDetailPage.tsx, /src/styles/index.css[22m
+[2m2:02:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/ShopPage.tsx, /src/styles/index.css[22m
+[2m2:02:19 AM[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[2m2:02:20 AM[22m [36m[1m[vite][22m[39m server restarted.

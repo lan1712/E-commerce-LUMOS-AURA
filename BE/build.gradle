@@ -28,6 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // Spring Modulith
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
@@ -59,6 +60,7 @@ dependencies {
     // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
 
@@ -89,4 +91,11 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'user.timezone', 'UTC'
+    jvmArgs = ['-Duser.timezone=UTC']
+}
+
+tasks.named('bootRun') {
+    systemProperty 'user.timezone', 'UTC'
+    jvmArgs = ['-Duser.timezone=UTC']
 }

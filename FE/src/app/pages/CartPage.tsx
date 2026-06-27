@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Minus, Plus, X, ShoppingBag, Check } from "lucide-react";
 import { useCart, useNav } from "../context";
-import { products } from "../data";
+import { formatPrice, type Product } from "../data";
 import { Footer } from "../components/Footer";
-import { promoApi } from "../api";
+import { promoApi, productsApi } from "../api";
 
 export function CartPage() {
   const { items, removeFromCart, updateQuantity, total, addToCart } = useCart();
@@ -45,12 +45,19 @@ export function CartPage() {
       : Math.min(appliedPromo.value, total)
     : 0;
 
-  const shippingCost = total >= 100 || (appliedPromo?.code === "FREESHIP") ? 0 : 8;
+  const shippingCost = total >= 500000 || (appliedPromo?.code === "FREESHIP") ? 0 : 30000;
   const finalTotal = total - discount + shippingCost;
+
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    productsApi.list()
+      .then((data: Product[]) => { if (data?.length) setAllProducts(data); })
+      .catch(() => { });
+  }, []);
 
   // "Complete your ritual" accessories — products not in cart
   const cartIds = new Set(items.map((i) => i.product.id));
-  const ritualSuggestions = products.filter((p) => !cartIds.has(p.id)).slice(0, 4);
+  const ritualSuggestions = allProducts.filter((p) => !cartIds.has(p.id)).slice(0, 4);
 
   if (items.length === 0) {
     return (
@@ -145,7 +152,7 @@ export function CartPage() {
 
                 {/* Price */}
                 <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 15, color: "#675a4e" }}>
-                  ${product.price}
+                  {formatPrice(product.price)}
                 </p>
 
                 {/* Quantity */}
@@ -166,7 +173,7 @@ export function CartPage() {
 
                 {/* Total */}
                 <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>
-                  ${(product.price * quantity).toFixed(0)}
+                  {formatPrice(product.price * quantity)}
                 </p>
               </div>
             ))}
@@ -184,12 +191,12 @@ export function CartPage() {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex justify-between">
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Subtotal</span>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>${total.toFixed(2)}</span>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>{formatPrice(total)}</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Shipping</span>
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 14, color: shippingCost === 0 ? "#735a36" : "#675a4e" }}>
-                  {shippingCost === 0 ? "Complimentary" : `$${shippingCost.toFixed(2)}`}
+                  {shippingCost === 0 ? "Miễn phí" : formatPrice(shippingCost)}
                 </span>
               </div>
               {appliedPromo && discount > 0 && (
@@ -198,7 +205,7 @@ export function CartPage() {
                     Discount ({appliedPromo.code})
                   </span>
                   <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#6b5948" }}>
-                    −${discount.toFixed(2)}
+                    -{formatPrice(discount)}
                   </span>
                 </div>
               )}
@@ -210,7 +217,7 @@ export function CartPage() {
 
             <div className="flex justify-between py-4 mb-6" style={{ borderTop: "1px solid #d1c4bb", borderBottom: "1px solid #d1c4bb" }}>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: "#3d3530" }}>Total</span>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 24, color: "#3d3530" }}>${finalTotal.toFixed(2)}</span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 24, color: "#3d3530" }}>{formatPrice(finalTotal)}</span>
             </div>
 
             {/* Promo code */}
@@ -316,7 +323,7 @@ export function CartPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, color: "#3d3530", lineHeight: "18px" }}>{product.name}</p>
-                    <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>${product.price}</p>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>{formatPrice(product.price)}</p>
                     <button
                       className="mt-1 text-xs hover:opacity-70 transition-opacity"
                       style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 11, color: "#735a36", letterSpacing: "0.5px" }}

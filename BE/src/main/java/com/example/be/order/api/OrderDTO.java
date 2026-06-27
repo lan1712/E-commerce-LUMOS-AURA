@@ -22,6 +22,9 @@ public record OrderDTO(
         BigDecimal discount,
         BigDecimal total,
         String promoCode,
+        String paymentMethod,
+        String transactionId,
+        String paymentUrl,
         List<OrderItemDTO> items,
         LocalDateTime createdAt
 ) {}

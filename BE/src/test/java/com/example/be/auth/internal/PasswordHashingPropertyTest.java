@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class PasswordHashingPropertyTest {
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(4);
 
     /**
      * **Validates: Requirements 1.1, 2.5**

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useCart, useNav, useAuth } from "../context";
 import { ordersApi } from "../api";
+import { formatPrice } from "../data";
 
 type Step = "contact" | "shipping" | "payment" | "confirmed";
 
@@ -137,13 +138,13 @@ export function CheckoutPage() {
     address: "", apt: "", city: "", state: "", zip: "",
   });
   const [promoCode, setPromoCode] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("VNPAY");
   const [orderNumber, setOrderNumber] = useState("");
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
 
-  const shippingCost = total >= 100 ? 0 : 14.8;
-  const tax = total * 0.08;
-  const finalTotal = total + shippingCost + tax;
+  const shippingCost = total >= 500000 ? 0 : 30000;
+  const finalTotal = total + shippingCost;
 
   const handlePlaceOrder = async () => {
     setPlacing(true);
@@ -157,12 +158,17 @@ export function CheckoutPage() {
         shipState: shipping.state,
         shipZip: shipping.zip,
         promoCode: promoCode || undefined,
+        paymentMethod: paymentMethod,
         items: items.map((i) => ({ productSlug: i.product.id, quantity: i.quantity })),
       };
       const res = await ordersApi.create(payload);
-      setOrderNumber(res.orderNumber);
       clearCart();
-      setStep("confirmed");
+      if (res.paymentUrl) {
+        window.location.href = res.paymentUrl;
+      } else {
+        setOrderNumber(res.orderNumber);
+        setStep("confirmed");
+      }
     } catch (e: unknown) {
       setPlaceError(e instanceof Error ? e.message : "Failed to place order.");
     } finally {
@@ -311,13 +317,15 @@ export function CheckoutPage() {
             </p>
             {/* Payment options */}
             {[
-              { label: "Credit Card", icon: "💳" },
-              { label: "PayPal", icon: "🅿" },
+              { id: "VNPAY", label: "VNPay (QR, ATM, Credit Card)", icon: "💸" },
+              { id: "MOMO", label: "MoMo (QR Code)", icon: <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo Logo" style={{ height: "24px", width: "24px", objectFit: "contain", borderRadius: "4px" }} /> },
+              { id: "COD", label: "Cash on Delivery (COD)", icon: "🚚" },
             ].map((opt, i) => (
               <div
-                key={opt.label}
+                key={opt.id}
+                onClick={() => setPaymentMethod(opt.id)}
                 className="flex items-center justify-between px-4 py-3.5 mb-3 rounded-xl cursor-pointer hover:opacity-80 transition-opacity"
-                style={{ border: i === 0 ? "1px solid #6b5948" : "1px solid #d1c4bb", backgroundColor: i === 0 ? "rgba(107,89,72,0.04)" : "white" }}
+                style={{ border: paymentMethod === opt.id ? "1px solid #6b5948" : "1px solid #d1c4bb", backgroundColor: paymentMethod === opt.id ? "rgba(107,89,72,0.04)" : "white" }}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -384,7 +392,7 @@ export function CheckoutPage() {
                   </p>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>{product.size}</p>
                 </div>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>${(product.price * quantity).toFixed(0)}</p>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>{formatPrice(product.price * quantity)}</p>
               </div>
             ))}
           </div>
@@ -411,21 +419,17 @@ export function CheckoutPage() {
           <div className="flex flex-col gap-3 pt-4" style={{ borderTop: "1px solid #d1c4bb" }}>
             <div className="flex justify-between">
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Subtotal</span>
-              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 14, color: "#3d3530" }}>${total.toFixed(2)}</span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 14, color: "#3d3530" }}>{formatPrice(total)}</span>
             </div>
             <div className="flex justify-between">
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Shipping</span>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#7f756d" }}>
-                {shippingCost === 0 ? "Free" : `Calculated at next step`}
+                {shippingCost === 0 ? "Miễn phí" : formatPrice(shippingCost)}
               </span>
-            </div>
-            <div className="flex justify-between">
-              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Taxes</span>
-              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#7f756d" }}>${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between pt-3" style={{ borderTop: "1px solid #d1c4bb" }}>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: "#3d3530" }}>Total</span>
-              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 18, color: "#3d3530" }}>≈ ${finalTotal.toFixed(2)}</span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 18, color: "#3d3530" }}>{formatPrice(finalTotal)}</span>
             </div>
           </div>
         </div>

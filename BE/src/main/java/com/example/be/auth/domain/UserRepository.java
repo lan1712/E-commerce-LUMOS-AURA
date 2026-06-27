@@ -19,4 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return an {@link Optional} containing the user if found, or empty if not
      */
     Optional<User> findByEmail(String email);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :startDate AND u.createdAt < :endDate")
+    long countUsersBetween(@org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate, @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate);
 }

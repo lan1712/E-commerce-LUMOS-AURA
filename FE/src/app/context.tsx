@@ -40,6 +40,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (token: string) => Promise<void>;
   register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -55,7 +56,53 @@ export function useAuth() {
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 
-export type Page = "home" | "shop" | "product" | "cart" | "checkout" | "signin" | "orders" | "account" | "policies" | "contact" | "about" | "gift" | "search" | "wishlist" | "addresses";
+export type Page = "home" | "shop" | "product" | "cart" | "checkout" | "signin" | "orders" | "account" | "policies" | "contact" | "about" | "gift" | "search" | "wishlist" | "addresses" | "admin" | "vnpay-return" | "momo-return";
+
+interface RouteState {
+  page: Page;
+  productId: string | null;
+}
+
+const pagePaths: Record<Exclude<Page, "product">, string> = {
+  home: "/",
+  shop: "/shop",
+  cart: "/cart",
+  checkout: "/checkout",
+  signin: "/signin",
+  orders: "/orders",
+  account: "/account",
+  policies: "/policies",
+  contact: "/contact",
+  about: "/about",
+  gift: "/gift-collection",
+  search: "/search",
+  wishlist: "/wishlist",
+  addresses: "/addresses",
+  admin: "/admin",
+  "vnpay-return": "/checkout/vnpay-return",
+  "momo-return": "/checkout/momo-return",
+};
+
+function routeFromPath(pathname: string): RouteState {
+  const path = pathname !== "/" ? pathname.replace(/\/+$/, "") : pathname;
+  const productMatch = path.match(/^\/products\/([^/]+)$/);
+
+  if (productMatch) {
+    return { page: "product", productId: decodeURIComponent(productMatch[1]) };
+  }
+
+  const matchedPage = (Object.entries(pagePaths) as [Exclude<Page, "product">, string][])
+    .find(([, routePath]) => routePath === path)?.[0];
+
+  return { page: matchedPage ?? "home", productId: null };
+}
+
+function pathForPage(page: Page, productId?: string): string {
+  if (page === "product") {
+    return productId ? `/products/${encodeURIComponent(productId)}` : "/shop";
+  }
+  return pagePaths[page];
+}
 
 interface NavContextType {
   currentPage: Page;
@@ -131,6 +178,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("lumos_user", JSON.stringify(userData));
   };
 
+  const loginWithGoogle = async (googleToken: string) => {
+    const res = await authApi.googleLogin(googleToken);
+    setToken(res.token);
+    const userData: AuthUser = { email: res.email, firstName: res.firstName, lastName: res.lastName, role: res.role };
+    setUser(userData);
+    localStorage.setItem("lumos_user", JSON.stringify(userData));
+  };
+
   const register = async (email: string, password: string, firstName?: string, lastName?: string) => {
     const res = await authApi.register(email, password, firstName, lastName);
     setToken(res.token);
@@ -146,10 +201,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // Navigation
-  const [currentPage, setCurrentPage] = useState<Page>("home");
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const initialRoute = routeFromPath(window.location.pathname);
+  const [currentPage, setCurrentPage] = useState<Page>(initialRoute.page);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(initialRoute.productId);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = routeFromPath(window.location.pathname);
+      setCurrentPage(route.page);
+      setSelectedProductId(route.productId);
+      window.scrollTo({ top: 0 });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const navigate = (page: Page, productId?: string) => {
+    const nextPath = pathForPage(page, productId);
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ page, productId: productId ?? null }, "", nextPath);
+    }
     setCurrentPage(page);
     setSelectedProductId(productId ?? null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -188,7 +260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, loginWithGoogle, register, logout, refreshUser }}>
       <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}>
         <NavContext.Provider value={{ currentPage, selectedProductId, navigate }}>
           {children}

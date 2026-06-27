@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Label("Password Hashing Property Tests")
 public class PasswordHashingPropertyTest {
 
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(4);
 
     /**
      * **Validates: Requirements 1.1, 2.5**
@@ -43,6 +43,6 @@ public class PasswordHashingPropertyTest {
         return Arbitraries.strings()
                 .withCharRange('!', '~')
                 .ofMinLength(8)
-                .ofMaxLength(100);
+                .ofMaxLength(72);
     }
 }

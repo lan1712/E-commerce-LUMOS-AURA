@@ -16,20 +16,20 @@ import { SearchPage } from "./pages/SearchPage";
 import { WishlistPage } from "./pages/WishlistPage";
 import { AddressesPage } from "./pages/AddressesPage";
 import { AdminPanel } from "./pages/AdminPanel";
+import { VNPayReturnPage } from "./pages/VNPayReturnPage";
+import { MomoReturnPage } from "./pages/MomoReturnPage";
 import "../styles/fonts.css";
 
 function AppShell() {
   const { currentPage, selectedProductId } = useNav();
   const { user, isLoggedIn } = useAuth();
 
-  // Admin users go directly to the admin panel
-  if (isLoggedIn && user?.role === "ADMIN") {
-    return <AdminPanel />;
-  }
-
   // Full-screen pages with no standard Navbar
   if (currentPage === "signin") return <SignInPage />;
   if (currentPage === "checkout") return <CheckoutPage />;
+  if (currentPage === "vnpay-return") return <VNPayReturnPage />;
+  if (currentPage === "momo-return") return <MomoReturnPage />;
+  if (currentPage === "admin" && isLoggedIn && user?.role === "ADMIN") return <AdminPanel />;
 
   return (
     <div className="flex flex-col min-h-screen w-full">

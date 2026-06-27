@@ -33,6 +33,9 @@ public record CreateOrderRequest(
 
         String promoCode,
 
+        @NotBlank(message = "Payment method is required")
+        String paymentMethod,
+
         @NotEmpty(message = "Order must contain at least one item")
         List<OrderItemRequest> items
 ) {

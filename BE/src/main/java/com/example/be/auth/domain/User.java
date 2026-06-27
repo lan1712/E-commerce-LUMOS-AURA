@@ -52,6 +52,25 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.USER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
+    @Column(length = 20)
+    private String phoneNumber;
+
+    @Column
+    private Integer rewardPoints = 0;
+
+    @Column(length = 10)
+    private String otp;
+
+    @Column(name = "otp_expiry")
+    private LocalDateTime otpExpiry;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

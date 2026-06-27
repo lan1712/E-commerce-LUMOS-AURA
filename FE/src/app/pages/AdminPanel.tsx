@@ -1,15 +1,13 @@
-import { useState } from "react";
-import imgAdminAvatar from "../../imports/DashboardLumosAuraAdmin/85fc1703dac33d471d6648f9f6e28e806ae4728d.png";
-import imgProduct1 from "../../imports/ProductsLumosAuraAdmin/09a79d0231c0a9a07cc65051347003f388883cf9.png";
-import imgProduct2 from "../../imports/ProductsLumosAuraAdmin/e7785094366f55e6ca58f53aacd188c6b0af2a0d.png";
-import imgReview1 from "../../imports/ReviewsLumosAuraAdmin/ce339585e7f9ff6801705d0866dd4ab36ce125bf.png";
-import imgReview2 from "../../imports/ReviewsLumosAuraAdmin/b79f757d605f94cdef0b1935e15d9d2e43cc3ffc.png";
+import { useState, useEffect, useMemo } from "react";
+import { productsApi } from "../api";
+import { formatPrice } from "../data";
+import imgAdminAvatar from "../../assets/admin/admin-avatar.png";
 import { useAuth, useNav } from "../context";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Ticket, Star, FileText,
   Search, Bell, Settings, TrendingUp, TrendingDown, MoreVertical,
   Plus, Download, Eye, Pencil, Trash2, Check, X, ChevronLeft, ChevronRight,
-  LogOut,
+  LogOut, UploadCloud, Image as ImageIcon, Tag, Gift, Flame, Save, ListFilter,
 } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, ResponsiveContainer, Tooltip, Area, AreaChart } from "recharts";
 
@@ -105,6 +103,16 @@ function Sidebar({ active, setActive }: { active: AdminSection; setActive: (s: A
 
 // ── Top Header ────────────────────────────────────────────────────────────────
 function TopHeader({ placeholder }: { placeholder: string }) {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const { navigate } = useNav();
+
+  const handleLogout = () => {
+    logout();
+    navigate("home");
+  };
+
   return (
     <header className="fixed top-0 left-64 right-0 h-16 flex items-center justify-between px-6 z-10"
       style={{ backgroundColor: "#fff8f5", borderBottom: "1px solid #d1c4bb" }}>
@@ -117,41 +125,117 @@ function TopHeader({ placeholder }: { placeholder: string }) {
           style={{ backgroundColor: "#f5ece7", ...F, color: "#4e453e", border: "1px solid #d1c4bb" }}
         />
       </div>
-      <div className="flex items-center gap-2">
-        <button className="p-2 rounded-full hover:bg-[#f5ece7] transition-colors"><Bell size={18} color="#4e453e" /></button>
-        <button className="p-2 rounded-full hover:bg-[#f5ece7] transition-colors"><Settings size={18} color="#4e453e" /></button>
-        <img src={imgAdminAvatar} alt="Admin" className="w-8 h-8 rounded-full object-cover ml-2" />
+      <div className="flex items-center gap-2 relative">
+        {/* Notifications */}
+        <div className="relative">
+          <button 
+            onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}
+            className="p-2 rounded-full hover:bg-[#f5ece7] transition-colors relative"
+          >
+            <Bell size={18} color="#4e453e" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+          
+          {isNotifOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+              <div className="px-4 py-3 border-b border-gray-100 bg-[#fbf2ed]">
+                <h3 className="font-semibold text-sm" style={{ color: "#1e1b18", ...F }}>Notifications</h3>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                <div className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                  <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>New Order #ORD-0922</p>
+                  <p className="text-xs text-gray-500 mt-1" style={F}>Eleanor Vance placed a new order.</p>
+                  <p className="text-[10px] text-gray-400 mt-1" style={F}>5 mins ago</p>
+                </div>
+                <div className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                  <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>Low Stock Alert</p>
+                  <p className="text-xs text-gray-500 mt-1" style={F}>"Luminous Serum" is running low (3 left).</p>
+                  <p className="text-[10px] text-gray-400 mt-1" style={F}>2 hours ago</p>
+                </div>
+                <div className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                  <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>New User Registered</p>
+                  <p className="text-xs text-gray-500 mt-1" style={F}>Sarah Connor just created an account.</p>
+                  <p className="text-[10px] text-gray-400 mt-1" style={F}>1 day ago</p>
+                </div>
+              </div>
+              <div className="px-4 py-2 text-center border-t border-gray-100">
+                <button className="text-xs font-medium hover:underline" style={{ color: "#6b5948", ...F }}>View all notifications</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Profile Dropdown */}
+        <div className="relative">
+          <button 
+            onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
+            className="flex items-center hover:opacity-80 transition-opacity focus:outline-none"
+          >
+            <img src={imgAdminAvatar} alt="Admin" className="w-8 h-8 rounded-full object-cover ml-2 border border-gray-200" />
+          </button>
+
+          {isProfileOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 py-1">
+              <div className="px-4 py-3 border-b border-gray-100">
+                <p className="text-sm font-semibold truncate" style={{ color: "#1e1b18", ...F }}>{user?.firstName || "Admin"} {user?.lastName || ""}</p>
+                <p className="text-xs text-gray-500 truncate" style={F}>{user?.email}</p>
+              </div>
+              <button 
+                onClick={() => navigate("home")}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                style={{ color: "#4e453e", ...F }}
+              >
+                <LayoutDashboard size={14} /> Go to Store
+              </button>
+              <button 
+                onClick={() => navigate("account")}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                style={{ color: "#4e453e", ...F }}
+              >
+                <Settings size={14} /> Account Settings
+              </button>
+              <div className="border-t border-gray-100 my-1"></div>
+              <button 
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 flex items-center gap-2 text-red-600"
+                style={F}
+              >
+                <LogOut size={14} /> Sign out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Close dropdowns when clicking outside (simple overlay) */}
+      {(isProfileOpen || isNotifOpen) && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => { setIsProfileOpen(false); setIsNotifOpen(false); }}
+        />
+      )}
     </header>
   );
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-const revenueData = [
-  { m: "Jan", v: 42 }, { m: "Feb", v: 55 }, { m: "Mar", v: 48 }, { m: "Apr", v: 61 },
-  { m: "May", v: 72 }, { m: "Jun", v: 68 }, { m: "Jul", v: 85 }, { m: "Aug", v: 91 },
-  { m: "Sep", v: 88 }, { m: "Oct", v: 102 }, { m: "Nov", v: 118 }, { m: "Dec", v: 124 },
-];
-const topSellers = [
-  { name: "Midnight Amber", units: 420, pct: 85 },
-  { name: "Sandalwood Dream", units: 380, pct: 75 },
-  { name: "Citrus Glow", units: 250, pct: 50 },
-  { name: "Vanilla Muse", units: 180, pct: 35 },
-];
-const recentOrders = [
-  { id: "#ORD-0921", customer: "Eleanor Vance", date: "Oct 24, 2023", amount: "$145.00", status: "Shipped" },
-  { id: "#ORD-0920", customer: "Luke Crain", date: "Oct 24, 2023", amount: "$85.50", status: "Processing" },
-  { id: "#ORD-0919", customer: "Theodora Crain", date: "Oct 23, 2023", amount: "$210.00", status: "Shipped" },
-  { id: "#ORD-0918", customer: "Steven Crain", date: "Oct 23, 2023", amount: "$65.00", status: "Delivered" },
-];
-
 function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
-  const metrics = [
-    { label: "TOTAL ORDERS", value: "1,248", change: "+12%", up: true },
-    { label: "REVENUE", value: "$124k", change: "+8.4%", up: true },
-    { label: "NEW CUSTOMERS", value: "450", change: "−2.1%", up: false },
-    { label: "CONVERSION", value: "3.4%", change: "+0.5%", up: true },
-  ];
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    import("../api").then(({ dashboardApi }) => {
+      dashboardApi.getStats()
+        .then(setStats)
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
+  }, []);
+
+  const metrics = stats?.metrics || [];
+  const revenueData = stats?.revenueData || [];
+  const topSellers = stats?.topSellers || [];
+  const recentOrders = stats?.recentOrders || [];
   const statusColor = (s: string) => s === "Shipped" ? "green" : s === "Processing" ? "yellow" : "gray";
 
   return (
@@ -251,20 +335,438 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
 }
 
 // ── Products ──────────────────────────────────────────────────────────────────
-const productRows = [
-  { img: imgProduct1, name: "Celestial Amber", sku: "LA-CA-001", category: "Eau de Parfum", price: "$185.00", stock: 142, stockColor: "#4ade80", status: "Published" },
-  { img: imgProduct2, name: "Midnight Fig Canvas", sku: "LA-MF-002", category: "Home Fragrance", price: "$65.00", stock: 12, stockColor: "#facc15", status: "Published" },
-  { img: null, name: "Oud Mirage", sku: "LA-OM-003", category: "Eau de Parfum", price: "$210.00", stock: 0, stockColor: "#d1c4bb", status: "Draft" },
-];
+type ProductEditorTab = "basic" | "pricing" | "images" | "details" | "inventory";
+
+const emptyProductForm = {
+  name: "",
+  slug: "",
+  price: "",
+  category: "Core Collection",
+  description: "",
+  scentNotes: "",
+  details: "",
+  image: "",
+  thumbnails: [] as string[],
+  burnTime: "",
+  burnHours: "",
+  size: "",
+  tags: "",
+  active: true,
+};
+
+const normalizeProductCategory = (category?: string) => {
+  if (category === "Gift Sets") return "Gift Collection";
+  if (category === "Home Fragrance" || category === "Eau de Parfum") return "Core Collection";
+  return category || "Core Collection";
+};
+
+function ProductEditor({
+  product,
+  onCancel,
+  onSaved,
+}: {
+  product?: any;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [tab, setTab] = useState<ProductEditorTab>("basic");
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState(() => product ? {
+    name: product.name ?? "",
+    slug: product.slug ?? product.id ?? "",
+    price: product.price?.toString() ?? "",
+    category: normalizeProductCategory(product.category),
+    description: product.description ?? "",
+    scentNotes: product.scentNotes ?? "",
+    details: product.details ?? "",
+    image: product.image ?? "",
+    thumbnails: product.thumbnails ?? [],
+    burnTime: product.burnTime ?? "",
+    burnHours: product.burnHours?.toString() ?? "",
+    size: product.size ?? "",
+    tags: (product.tags ?? []).join(", "),
+    active: true,
+  } : emptyProductForm);
+
+  const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const generateSlug = (name: string) =>
+    name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  const handleNameChange = (name: string) => {
+    setForm((current) => ({
+      ...current,
+      name,
+      slug: current.slug && product ? current.slug : generateSlug(name),
+    }));
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        const result = await productsApi.uploadImage(file);
+        urls.push(result.url);
+      }
+      setForm((current) => ({
+        ...current,
+        image: current.image || urls[0],
+        thumbnails: Array.from(new Set([...current.thumbnails, ...urls])),
+      }));
+    } catch (uploadError) {
+      setError((uploadError as Error).message || "Could not upload images.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (url: string) => {
+    setForm((current) => {
+      const thumbnails = current.thumbnails.filter((item) => item !== url);
+      return { ...current, thumbnails, image: current.image === url ? (thumbnails[0] ?? "") : current.image };
+    });
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.slug.trim() || !form.category) {
+      setError("Product name, slug and category are required.");
+      setTab("basic");
+      return;
+    }
+    if (!form.price || Number(form.price) <= 0) {
+      setError("Selling price must be greater than 0.");
+      setTab("pricing");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    const payload = {
+      name: form.name.trim(),
+      slug: form.slug.trim(),
+      price: Number(form.price),
+      category: form.category,
+      description: form.description.trim(),
+      scentNotes: form.scentNotes.trim(),
+      details: form.details.trim(),
+      image: form.image,
+      thumbnails: form.thumbnails,
+      burnTime: form.burnTime.trim(),
+      burnHours: form.burnHours ? Number(form.burnHours) : null,
+      size: form.size.trim(),
+      tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+      active: form.active,
+    };
+
+    try {
+      if (product) await productsApi.update(product.dbId, payload);
+      else await productsApi.create(payload);
+      onSaved();
+    } catch (saveError) {
+      setError((saveError as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const tabs: { key: ProductEditorTab; label: string }[] = [
+    { key: "basic", label: "Basic Information" },
+    { key: "pricing", label: "Variants & Pricing" },
+    { key: "images", label: "Images" },
+    { key: "details", label: "Details & SEO" },
+    { key: "inventory", label: "Inventory" },
+  ];
+  const tabOrder: ProductEditorTab[] = ["basic", "pricing", "images", "details", "inventory"];
+  const currentTabIndex = tabOrder.indexOf(tab);
+  const isLastTab = currentTabIndex === tabOrder.length - 1;
+  const handleContinue = () => {
+    if (isLastTab) {
+      handleSave();
+      return;
+    }
+    setError("");
+    setTab(tabOrder[currentTabIndex + 1]);
+  };
+
+  const fieldClass = "h-11 w-full rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none transition-colors focus:border-[#80664f]";
+  const labelClass = "mb-2 block text-[12px] font-semibold text-[#403832]";
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>{product ? "Edit Product" : "Add New Product"}</h1>
+          <div className="mt-2 flex items-center gap-2 text-xs text-[#7f756d]">
+            <button onClick={onCancel}>Dashboard</button><ChevronRight size={12} />
+            <button onClick={onCancel}>Products</button><ChevronRight size={12} />
+            <span>{product ? "Edit" : "Add New"}</span>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="h-10 rounded-md border border-[#d8ccc4] bg-white px-5 text-sm font-semibold text-[#4e453e]">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="flex h-10 items-center gap-2 rounded-md bg-[#6b5948] px-5 text-sm font-semibold text-white disabled:opacity-50">
+            <Save size={15} /> {saving ? "Saving..." : "Save Product"}
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="rounded-md border border-[#efc8c0] bg-[#fff3f0] px-4 py-3 text-sm text-[#9b3f31]">{error}</div>}
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="overflow-hidden rounded-lg border border-[#ddd2ca] bg-white">
+          <div className="flex overflow-x-auto border-b border-[#e5dcd5] px-6">
+            {tabs.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setTab(item.key)}
+                className="h-16 shrink-0 border-b-2 px-4 text-[13px] font-semibold"
+                style={{ borderColor: tab === item.key ? "#80664f" : "transparent", color: tab === item.key ? "#5c4837" : "#6f6964" }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-6">
+            {tab === "basic" && (
+              <div className="grid gap-x-7 gap-y-6 md:grid-cols-2">
+                <div>
+                  <label className={labelClass}>Product Name *</label>
+                  <input value={form.name} onChange={(e) => handleNameChange(e.target.value)} maxLength={150} placeholder="Enter product name" className={fieldClass} />
+                  <p className="mt-1 text-right text-[11px] text-[#9a918a]">{form.name.length}/150</p>
+                </div>
+                <div>
+                  <label className={labelClass}>Category *</label>
+                  <select value={form.category} onChange={(e) => update("category", e.target.value)} className={fieldClass}>
+                    <option>Core Collection</option>
+                    <option>Gift Collection</option>
+                    <option>Accessories</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Slug (URL) *</label>
+                  <input value={form.slug} onChange={(e) => update("slug", e.target.value)} placeholder="product-url" className={fieldClass} />
+                  <p className="mt-1 text-[11px] text-[#9a918a]">Auto-generated from product name</p>
+                </div>
+                <div>
+                  <label className={labelClass}>Product Type</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: "Core Collection", label: "Candle", icon: Flame },
+                      { value: "Gift Collection", label: "Gift Set", icon: Gift },
+                      { value: "Accessories", label: "Accessory", icon: Tag },
+                    ].map(({ value, label, icon: Icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => update("category", value)}
+                        className="flex h-11 items-center justify-center gap-2 rounded-md border text-xs font-semibold"
+                        style={{ borderColor: form.category === value ? "#80664f" : "#ddd2ca", backgroundColor: form.category === value ? "#faf5f1" : "#fff", color: "#4e453e" }}
+                      >
+                        <Icon size={15} /> {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Short Description</label>
+                  <textarea value={form.description} onChange={(e) => update("description", e.target.value)} maxLength={255} placeholder="A short summary about the product..." className="min-h-24 w-full resize-none rounded-md border border-[#d8ccc4] p-3 text-sm outline-none focus:border-[#80664f]" />
+                  <p className="mt-1 text-right text-[11px] text-[#9a918a]">{form.description.length}/255</p>
+                </div>
+                <div>
+                  <label className={labelClass}>Mood / Scent Notes</label>
+                  <input value={form.scentNotes} onChange={(e) => update("scentNotes", e.target.value)} placeholder="e.g. Vanilla, sandalwood, musk" className={fieldClass} />
+                  <label className={`${labelClass} mt-5`}>Tags</label>
+                  <input value={form.tags} onChange={(e) => update("tags", e.target.value)} placeholder="Relaxing, Cozy, Floral" className={fieldClass} />
+                </div>
+              </div>
+            )}
+
+            {tab === "pricing" && (
+              <div className="grid gap-6 md:grid-cols-2">
+                <div><label className={labelClass}>Selling Price (VND) *</label><input type="number" min="0" value={form.price} onChange={(e) => update("price", e.target.value)} placeholder="269000" className={fieldClass} /></div>
+                <div><label className={labelClass}>Size / Variant</label><input value={form.size} onChange={(e) => update("size", e.target.value)} placeholder="220g, 3 x 70g..." className={fieldClass} /></div>
+                <div><label className={labelClass}>Burn Time</label><input value={form.burnTime} onChange={(e) => update("burnTime", e.target.value)} placeholder="40-50 hours" className={fieldClass} /></div>
+                <div><label className={labelClass}>Minimum Burn Hours</label><input type="number" min="0" value={form.burnHours} onChange={(e) => update("burnHours", e.target.value)} placeholder="40" className={fieldClass} /></div>
+              </div>
+            )}
+
+            {tab === "images" && (
+              <div>
+                <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-[#cfc0b5] bg-[#fffaf7] text-center">
+                  <UploadCloud size={34} color="#6b5948" />
+                  <span className="mt-3 text-sm font-semibold text-[#403832]">{uploading ? "Uploading images..." : "Drag & drop images here or click to browse"}</span>
+                  <span className="mt-2 text-xs text-[#91877f]">PNG, JPG or WEBP</span>
+                  <input type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" />
+                </label>
+              </div>
+            )}
+
+            {tab === "details" && (
+              <div>
+                <label className={labelClass}>Long Description</label>
+                <textarea value={form.details} onChange={(e) => update("details", e.target.value)} placeholder="Write detailed information about the product..." className="min-h-64 w-full resize-y rounded-md border border-[#d8ccc4] p-4 text-sm leading-6 outline-none focus:border-[#80664f]" />
+                <p className="mt-3 text-xs text-[#91877f]">The product name and slug are used for search previews and product URLs.</p>
+              </div>
+            )}
+
+            {tab === "inventory" && (
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="rounded-lg border border-[#e3dad3] p-5">
+                  <p className="text-sm font-semibold text-[#403832]">Product status</p>
+                  <p className="mt-1 text-xs text-[#91877f]">Inactive products remain in the database but are hidden from customers.</p>
+                  <button onClick={() => update("active", !form.active)} className="mt-5 flex items-center gap-3 text-sm font-semibold text-[#4e453e]">
+                    <span className="relative h-6 w-11 rounded-full transition-colors" style={{ backgroundColor: form.active ? "#80664f" : "#d7d7d7" }}>
+                      <span className="absolute top-1 h-4 w-4 rounded-full bg-white transition-all" style={{ left: form.active ? 23 : 4 }} />
+                    </span>
+                    {form.active ? "Active" : "Inactive"}
+                  </button>
+                </div>
+                <div className="rounded-lg border border-[#e3dad3] p-5">
+                  <p className="text-sm font-semibold text-[#403832]">SKU</p>
+                  <p className="mt-2 font-mono text-sm text-[#6b5948]">{form.slug ? form.slug.toUpperCase().replace(/-/g, "_") : "AUTO_GENERATED"}</p>
+                  <p className="mt-3 text-xs text-[#91877f]">Stock quantity is managed on the default product variant in the database.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <aside className="flex flex-col gap-6">
+          <div className="rounded-lg border border-[#ddd2ca] bg-white p-5">
+            <h2 className="text-sm font-bold text-[#302923]">Product Images</h2>
+            <label className="mt-5 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-[#cfc0b5] text-center">
+              <UploadCloud size={28} color="#6b5948" />
+              <span className="mt-2 text-xs font-semibold text-[#4e453e]">{uploading ? "Uploading..." : "Click to upload images"}</span>
+              <input type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" />
+            </label>
+            <p className="mt-4 text-[11px] text-[#91877f]">Select an image below to use it as the main thumbnail.</p>
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              {form.thumbnails.map((url) => (
+                <div key={url} className="group relative aspect-square overflow-hidden rounded-md border" style={{ borderColor: form.image === url ? "#80664f" : "#e3dad3" }}>
+                  <button onClick={() => update("image", url)} className="h-full w-full"><img src={url} alt="" className="h-full w-full object-cover" /></button>
+                  <button onClick={() => removeImage(url)} className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-white shadow group-hover:flex"><X size={11} /></button>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 border-t border-[#eee6e0] pt-4">
+              <p className="text-xs font-semibold text-[#403832]">Thumbnail / Main Image</p>
+              <div className="mt-3 flex items-center gap-3 rounded-md border border-[#e3dad3] p-3">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#f5ece7]">
+                  {form.image ? <img src={form.image} alt="" className="h-full w-full object-cover" /> : <ImageIcon size={20} color="#aa9d94" />}
+                </div>
+                <div className="min-w-0"><p className="truncate text-xs font-semibold text-[#403832]">{form.image ? "Main image selected" : "No image selected"}</p><p className="mt-1 text-[11px] text-[#91877f]">Used as product thumbnail</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-[#ddd2ca] bg-white p-5">
+            <h2 className="text-sm font-bold text-[#302923]">Quick Info</h2>
+            <dl className="mt-4 grid grid-cols-[110px_1fr] gap-y-3 text-xs">
+              <dt className="text-[#7f756d]">Mode</dt><dd className="font-medium text-[#403832]">{product ? "Editing" : "New product"}</dd>
+              <dt className="text-[#7f756d]">Category</dt><dd className="font-medium text-[#403832]">{form.category}</dd>
+              <dt className="text-[#7f756d]">SKU (Auto)</dt><dd className="truncate font-mono text-[#403832]">{form.slug || "-"}</dd>
+            </dl>
+          </div>
+        </aside>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-[#ddd2ca] bg-white p-5">
+        <div><p className="text-sm font-semibold text-[#403832]">Next Step</p><p className="mt-1 text-xs text-[#91877f]">Complete each tab, then save the product to publish it in the catalog.</p></div>
+        <button onClick={handleContinue} disabled={saving} className="h-10 rounded-md bg-[#80664f] px-5 text-sm font-semibold text-white disabled:opacity-50">
+          {isLastTab ? (saving ? "Saving..." : "Save Product") : "Continue"}
+          {!isLastTab && <ChevronRight size={14} className="ml-1 inline" />}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function ProductsSection() {
   const [search, setSearch] = useState("");
-  const rows = productRows.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const [products, setProducts] = useState<any[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [collectionFilter, setCollectionFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [showEditor, setShowEditor] = useState(false);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const data = await productsApi.list();
+      setProducts(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const categories = useMemo(
+    () => Array.from(new Set(products.map((product) => product.category).filter(Boolean))) as string[],
+    [products],
+  );
+
+  const collections = useMemo(
+    () => Array.from(new Set(products.flatMap((product) => product.tags ?? []).filter(Boolean))).sort() as string[],
+    [products],
+  );
+
+  const filteredProducts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return products.filter((product) => {
+      const searchable = [product.name, product.slug, product.category, ...(product.tags ?? [])].join(" ").toLowerCase();
+      if (term && !searchable.includes(term)) return false;
+      if (categoryFilter !== "all" && product.category !== categoryFilter) return false;
+      if (collectionFilter !== "all" && !(product.tags ?? []).includes(collectionFilter)) return false;
+      if (statusFilter === "inactive") return false;
+      return true;
+    });
+  }, [categoryFilter, collectionFilter, products, search, statusFilter]);
+
+  const resetFilters = () => {
+    setSearch("");
+    setCategoryFilter("all");
+    setCollectionFilter("all");
+    setStatusFilter("all");
+  };
+
+  const hasFilters = Boolean(search || categoryFilter !== "all" || collectionFilter !== "all" || statusFilter !== "all");
+
+  const openEditor = (product?: any) => {
+    setEditingProduct(product ?? null);
+    setShowEditor(true);
+  };
+
+  const handleDelete = async (p: any) => {
+    if (window.confirm(`Are you sure you want to delete ${p.name}?`)) {
+      try {
+        await productsApi.delete(p.dbId);
+        fetchProducts();
+      } catch (e) {
+        console.error(e);
+        alert("Error deleting product.");
+      }
+    }
+  };
+
+  if (showEditor) {
+    return <ProductEditor product={editingProduct} onCancel={() => setShowEditor(false)} onSaved={() => { setShowEditor(false); fetchProducts(); }} />;
+  }
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 relative">
       <div className="flex items-center justify-between">
         <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Products</h1>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
+        <button onClick={() => openEditor()} className="flex items-center gap-2 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
           style={{ backgroundColor: "#6b5948", ...F, fontWeight: 600, fontSize: 14, color: "white" }}>
           <Plus size={14} /> Add Product
         </button>
@@ -272,107 +774,130 @@ function ProductsSection() {
 
       <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
         {/* Filters bar */}
-        <div className="flex items-center gap-4 px-4 py-3" style={{ backgroundColor: "#fbf2ed", borderBottom: "1px solid #d1c4bb" }}>
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap items-center gap-3 px-5 py-5" style={{ backgroundColor: "#fff", borderBottom: "1px solid #e2d8d1" }}>
+          <div className="relative min-w-[240px] flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" color="#4e453e" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..."
-              className="w-full pl-9 pr-4 py-2 rounded-lg outline-none text-sm"
-              style={{ backgroundColor: "#f5ece7", ...F, color: "#4e453e", border: "1px solid #d1c4bb" }} />
+              className="h-11 w-full rounded-md pl-9 pr-4 outline-none text-sm"
+              style={{ backgroundColor: "white", ...F, color: "#4e453e", border: "1px solid #d8ccc4" }} />
           </div>
-          <select className="px-3 py-2 rounded-lg text-sm outline-none"
-            style={{ ...F, backgroundColor: "#f5ece7", color: "#1e1b18", border: "1px solid #d1c4bb" }}>
-            <option>All Categories</option>
-            <option>Eau de Parfum</option>
-            <option>Home Fragrance</option>
+          <button className="flex h-11 w-11 items-center justify-center rounded-md border border-[#d8ccc4] bg-white" title="Product filters">
+            <ListFilter size={17} color="#6b5948" />
+          </button>
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-11 min-w-[155px] rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none" style={F}>
+            <option value="all">All categories</option>
+            {categories.map((category) => <option key={category} value={category}>{category}</option>)}
           </select>
-          <select className="px-3 py-2 rounded-lg text-sm outline-none"
-            style={{ ...F, backgroundColor: "#f5ece7", color: "#1e1b18", border: "1px solid #d1c4bb" }}>
-            <option>All Status</option>
-            <option>Published</option>
-            <option>Draft</option>
+          <select value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}
+            className="h-11 min-w-[150px] rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none" style={F}>
+            <option value="all">All collections</option>
+            {collections.map((collection) => <option key={collection} value={collection}>{collection}</option>)}
           </select>
-          <div className="flex gap-2 ml-auto">
-            <button className="p-2 rounded-lg" style={{ border: "1px solid #d1c4bb" }}><Download size={16} color="#4e453e" /></button>
-            <button className="p-2 rounded-lg" style={{ border: "1px solid #d1c4bb" }}><Settings size={16} color="#4e453e" /></button>
-          </div>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-11 min-w-[130px] rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none" style={F}>
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <button onClick={resetFilters} disabled={!hasFilters}
+            className="h-11 rounded-md border border-[#d8ccc4] bg-white px-5 text-sm font-semibold text-[#5c5048] disabled:opacity-40">
+            Reset
+          </button>
         </div>
         {/* Table */}
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px]">
           <thead>
             <tr style={{ backgroundColor: "#fbf2ed", borderBottom: "1px solid #d1c4bb" }}>
               <th className="w-12 px-6 py-4"><div className="w-4 h-4 rounded" style={{ border: "1px solid #d1c4bb", backgroundColor: "#f5ece7" }} /></th>
-              {["PRODUCT", "CATEGORY", "PRICE", "STOCK", "STATUS", "ACTIONS"].map((h, i) => (
-                <th key={h} className={`px-6 py-4 text-left ${i === 5 ? "text-right" : ""}`}
+              {["PRODUCT", "CATEGORY", "COLLECTIONS", "PRICE", "STATUS", "ACTIONS"].map((h, i) => (
+                <th key={h} className={`px-5 py-4 text-left ${i === 5 ? "text-right" : ""}`}
                   style={{ ...F, fontWeight: 700, fontSize: 11, letterSpacing: "0.6px", color: "#4e453e" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((p, i) => (
-              <tr key={p.sku} style={{ borderTop: i > 0 ? "1px solid #d1c4bb" : "none" }}
+            {filteredProducts.map((p, i) => (
+              <tr key={p.slug} style={{ borderTop: i > 0 ? "1px solid #d1c4bb" : "none" }}
                 className="hover:bg-[rgba(233,225,220,0.15)] transition-colors">
                 <td className="px-6 py-4"><div className="w-4 h-4 rounded" style={{ border: "1px solid #d1c4bb", backgroundColor: "#f5ece7" }} /></td>
-                <td className="px-6 py-4">
+                <td className="px-5 py-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded flex items-center justify-center overflow-hidden" style={{ backgroundColor: "#efe6e2" }}>
-                      {p.img ? <img src={p.img} alt={p.name} className="w-full h-full object-cover" /> : <Package size={20} color="#d1c4bb" />}
+                      {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-cover" /> : <Package size={20} color="#d1c4bb" />}
                     </div>
                     <div>
                       <p style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{p.name}</p>
-                      <p style={{ ...F, fontSize: 12, color: "#4e453e" }}>SKU: {p.sku}</p>
+                      <p style={{ ...F, fontSize: 12, color: "#4e453e" }}>SKU: {p.slug}</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{p.category}</td>
-                <td className="px-6 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{p.price}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.stockColor }} />
-                    <span style={{ ...F, fontSize: 14, color: "#1e1b18" }}>{p.stock}</span>
+                <td className="px-5 py-4" style={{ ...F, fontSize: 13, color: "#4e453e" }}>{p.category}</td>
+                <td className="px-5 py-4">
+                  <div className="flex max-w-[230px] flex-wrap gap-1.5">
+                    {(p.tags ?? []).slice(0, 3).map((tag: string) => (
+                      <span key={tag} className="rounded-md bg-[#f5f1ee] px-2 py-1 text-[11px] text-[#655a52]">{tag}</span>
+                    ))}
+                    {!(p.tags ?? []).length && <span className="text-xs text-[#aaa19a]">-</span>}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <Badge label={p.status} color={p.status === "Published" ? "brown" : "gray"} />
-                </td>
-                <td className="px-6 py-4">
+                <td className="px-5 py-4 whitespace-nowrap" style={{ ...F, fontWeight: 500, fontSize: 13, color: "#1e1b18" }}>{formatPrice(Number(p.price))}</td>
+                <td className="px-5 py-4"><Badge label="Active" color="green" /></td>
+                <td className="px-5 py-4">
                   <div className="flex items-center gap-2 justify-end">
-                    <button className="p-1.5 rounded hover:bg-[#f5ece7] transition-colors"><Pencil size={14} color="#4e453e" /></button>
-                    <button className="p-1.5 rounded hover:bg-[#fee2e2] transition-colors"><Trash2 size={14} color="#4e453e" /></button>
+                    <button className="p-1.5 rounded hover:bg-[#f5ece7] transition-colors" title="View product"><Eye size={14} color="#4e453e" /></button>
+                    <button onClick={() => openEditor(p)} className="p-1.5 rounded hover:bg-[#f5ece7] transition-colors"><Pencil size={14} color="#4e453e" /></button>
+                    <button onClick={() => handleDelete(p)} className="p-1.5 rounded hover:bg-[#fee2e2] transition-colors"><Trash2 size={14} color="#4e453e" /></button>
                   </div>
                 </td>
               </tr>
             ))}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500" style={F}>No products match the selected filters.</td>
+              </tr>
+            )}
           </tbody>
         </table>
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: "#fbf2ed", borderTop: "1px solid #d1c4bb" }}>
-          <span style={{ ...F, fontSize: 14, color: "#4e453e" }}>Showing 1 to {rows.length} of 45 results</span>
-          <div className="flex gap-1">
-            {["Prev", "1", "2", "3", "...", "Next"].map((b) => (
-              <button key={b} className="px-3 py-1.5 rounded text-sm"
-                style={{ ...F, border: "1px solid #d1c4bb", backgroundColor: b === "1" ? "#6b5948" : "transparent", color: b === "1" ? "white" : "#4e453e" }}>
-                {b}
-              </button>
-            ))}
-          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-[#e2d8d1] px-5 py-4">
+          <p className="text-xs text-[#6f665f]">Showing {filteredProducts.length} of {products.length} products</p>
+          <p className="text-xs text-[#9a918a]">{hasFilters ? "Filters applied" : "All products"}</p>
         </div>
       </div>
+
     </div>
   );
 }
 
 // ── Orders ────────────────────────────────────────────────────────────────────
-const orderRows = [
-  { id: "#ORD-0921", date: "Oct 24, 2023", customer: "Eleanor Vance", total: "$345.00", status: "Processing", payment: "Paid" },
-  { id: "#ORD-0920", date: "Oct 24, 2023", customer: "Julian Crain", total: "$120.00", status: "Pending", payment: "Unpaid" },
-  { id: "#ORD-0919", date: "Oct 23, 2023", customer: "Sarah Connor", total: "$890.00", status: "Completed", payment: "Paid" },
-  { id: "#ORD-0918", date: "Oct 22, 2023", customer: "Marcus Webb", total: "$210.00", status: "Completed", payment: "Paid" },
-];
 
 function OrdersSection() {
-  const [tab, setTab] = useState<"All" | "Pending" | "Processing" | "Completed">("All");
-  const filtered = tab === "All" ? orderRows : orderRows.filter(o => o.status === tab);
-  const statusColor = (s: string): "yellow" | "gray" | "green" | "blue" => ({ Processing: "yellow", Pending: "gray", Completed: "green" }[s] as "yellow" | "gray" | "green") || "gray";
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"All" | "PENDING" | "PAID" | "PROCESSING" | "COMPLETED">("All");
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = () => {
+    setLoading(true);
+    import("../api").then(({ adminOrdersApi }) => {
+      adminOrdersApi.list().then(setOrders).finally(() => setLoading(false));
+    });
+  };
+
+  const handleUpdateStatus = (id: number, newStatus: string) => {
+    import("../api").then(({ adminOrdersApi }) => {
+      adminOrdersApi.updateStatus(id, newStatus).then(fetchOrders);
+    });
+  };
+
+  const filtered = tab === "All" ? orders : orders.filter(o => o.status === tab);
+  const statusColor = (s: string): "yellow" | "gray" | "green" | "blue" => ({ PROCESSING: "yellow", PENDING: "gray", COMPLETED: "green" }[s] as "yellow" | "gray" | "green") || "gray";
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -388,12 +913,12 @@ function OrdersSection() {
       <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
         {/* Tabs */}
         <div className="flex gap-0 px-6 pt-4" style={{ borderBottom: "1px solid #d1c4bb" }}>
-          {(["All", "Pending", "Processing", "Completed"] as const).map((t) => (
+          {(["All", "PENDING", "PAID", "PROCESSING", "COMPLETED"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className="px-4 pb-3 mr-2 text-sm"
               style={{ ...F, fontWeight: tab === t ? 600 : 400, color: tab === t ? "#1e1b18" : "#4e453e",
                 borderBottom: tab === t ? "2px solid #6b5948" : "2px solid transparent" }}>
-              {t}
+              {t === "All" ? "All" : t.charAt(0) + t.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -406,14 +931,34 @@ function OrdersSection() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((o, i) => (
+            {loading ? (
+              <tr><td colSpan={7} className="text-center py-6">Loading orders...</td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={7} className="text-center py-6">No orders found.</td></tr>
+            ) : filtered.map((o, i) => (
               <tr key={o.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(209,196,187,0.4)" : "none" }}
                 className="hover:bg-[rgba(233,225,220,0.1)]">
-                <td className="px-6 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{o.id}</td>
-                <td className="px-6 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{o.date}</td>
-                <td className="px-6 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{o.customer}</td>
-                <td className="px-6 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{o.total}</td>
-                <td className="px-6 py-4"><Badge label={o.status} color={statusColor(o.status)} /></td>
+                <td className="px-6 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{o.orderNumber}</td>
+                <td className="px-6 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{new Date(o.date).toLocaleDateString()}</td>
+                <td className="px-6 py-4" style={F}>
+                  <div style={{ fontSize: 14, color: "#4e453e", fontWeight: 500 }}>{o.customerName}</div>
+                  <div style={{ fontSize: 12, color: "#9ca3af" }}>{o.email}</div>
+                </td>
+                <td className="px-6 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{formatPrice(Number(o.total))}</td>
+                <td className="px-6 py-4">
+                  <select 
+                    value={o.status}
+                    onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
+                    className="border text-xs rounded px-2 py-1 outline-none"
+                    style={{ backgroundColor: "transparent", borderColor: "#d1c4bb" }}
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="PAID">Paid</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                </td>
                 <td className="px-6 py-4"><Badge label={o.payment} color={o.payment === "Paid" ? "green" : "yellow"} /></td>
                 <td className="px-6 py-4"><button className="hover:opacity-70"><Eye size={16} color="#4e453e" /></button></td>
               </tr>
@@ -421,11 +966,7 @@ function OrdersSection() {
           </tbody>
         </table>
         <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: "1px solid #d1c4bb" }}>
-          <span style={{ ...F, fontSize: 14, color: "#4e453e" }}>Showing 1 to {filtered.length} of 45 results</span>
-          <div className="flex gap-2">
-            <button className="px-4 py-1.5 rounded text-sm" style={{ ...F, border: "1px solid #d1c4bb", color: "#4e453e" }}>Prev</button>
-            <button className="px-4 py-1.5 rounded text-sm" style={{ ...F, border: "1px solid #d1c4bb", color: "#4e453e" }}>Next</button>
-          </div>
+          <span style={{ ...F, fontSize: 14, color: "#4e453e" }}>Showing {filtered.length} results</span>
         </div>
       </div>
     </div>
@@ -433,14 +974,70 @@ function OrdersSection() {
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────────
-const userRows = [
-  { initials: "EJ", color: "#d97706", name: "Eleanor James", email: "eleanor.j@example.com", role: "Customer", status: "Active", lastLogin: "Oct 24, 2024" },
-  { initials: "MW", color: "#6b5948", name: "Marcus Webb", email: "m.webb@lumosaura.com", role: "Admin", status: "Active", lastLogin: "Oct 25, 2024" },
-  { initials: "SC", color: "#9ca3af", name: "Sarah Chen", email: "sarah.c88@example.com", role: "Customer", status: "Suspended", lastLogin: "Sep 12, 2024" },
-  { initials: "DT", color: "#4e453e", name: "David Torres", email: "dtorres@example.com", role: "Customer", status: "Active", lastLogin: "Oct 20, 2024" },
-];
 
 function UsersSection() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", password: "", role: "USER" });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = () => {
+    setLoading(true);
+    import("../api").then(({ usersApi }) => {
+      usersApi.list().then(setUsers).finally(() => setLoading(false));
+    });
+  };
+
+  const handleAddSubmit = () => {
+    setSaving(true);
+    import("../api").then(({ usersApi }) => {
+      usersApi.create(formData).then(() => {
+        fetchUsers();
+        setIsAddModalOpen(false);
+        setFormData({ firstName: "", lastName: "", email: "", password: "", role: "USER" });
+      }).finally(() => setSaving(false));
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this user?")) {
+      import("../api").then(({ usersApi }) => {
+        usersApi.delete(id).then(fetchUsers);
+      });
+    }
+  };
+
+  const handleToggleStatus = (user: any) => {
+    const newStatus = user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+    import("../api").then(({ usersApi }) => {
+      usersApi.updateStatus(user.id, newStatus).then(fetchUsers);
+    });
+  };
+
+  const handleToggleRole = (user: any) => {
+    const newRole = user.role === "ADMIN" ? "USER" : "ADMIN";
+    import("../api").then(({ usersApi }) => {
+      usersApi.updateRole(user.id, newRole).then(fetchUsers);
+    });
+  };
+
+  const filteredUsers = users.filter(u => 
+    (u.firstName + " " + u.lastName).toLowerCase().includes(search.toLowerCase()) || 
+    u.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const getInitials = (f: string, l: string) => ((f?.[0] || "") + (l?.[0] || "")).toUpperCase() || "U";
+  const getColor = (id: number) => {
+    const colors = ["#d97706", "#6b5948", "#9ca3af", "#4e453e", "#059669"];
+    return colors[id % colors.length];
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -449,10 +1046,7 @@ function UsersSection() {
           <p style={{ ...F, fontSize: 14, color: "#4e453e", marginTop: 4 }}>Manage customer and administrative accounts.</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg" style={{ border: "1px solid #d1c4bb", ...F, fontSize: 14, color: "#4e453e" }}>
-            <Download size={14} /> Export CSV
-          </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg hover:opacity-90"
+          <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-lg hover:opacity-90"
             style={{ backgroundColor: "#6b5948", ...F, fontWeight: 600, fontSize: 14, color: "white" }}>
             <Plus size={14} /> Add User
           </button>
@@ -464,11 +1058,9 @@ function UsersSection() {
           <div className="relative flex-1 max-w-sm">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" color="#4e453e" />
             <input placeholder="Find users by name or email..." className="w-full pl-9 pr-4 py-2 rounded-lg outline-none text-sm"
+              value={search} onChange={e => setSearch(e.target.value)}
               style={{ border: "1px solid #d1c4bb", ...F, color: "#4e453e", backgroundColor: "white" }} />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid #d1c4bb", ...F, color: "#1e1b18" }}>
-            Update Role <ChevronRight size={14} />
-          </button>
         </div>
         <table className="w-full">
           <thead>
@@ -480,46 +1072,76 @@ function UsersSection() {
             </tr>
           </thead>
           <tbody>
-            {userRows.map((u, i) => (
-              <tr key={u.email} style={{ borderBottom: i < userRows.length - 1 ? "1px solid rgba(209,196,187,0.4)" : "none" }}
+            {loading ? (
+              <tr><td colSpan={7} className="text-center py-6">Loading users...</td></tr>
+            ) : filteredUsers.length === 0 ? (
+              <tr><td colSpan={7} className="text-center py-6">No users found.</td></tr>
+            ) : filteredUsers.map((u, i) => (
+              <tr key={u.id} style={{ borderBottom: i < filteredUsers.length - 1 ? "1px solid rgba(209,196,187,0.4)" : "none" }}
                 className="hover:bg-[rgba(233,225,220,0.1)]">
                 <td className="px-6 py-4"><div className="w-4 h-4 rounded" style={{ border: "1px solid #d1c4bb" }} /></td>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: u.color }}>
-                      <span style={{ ...F, fontWeight: 600, fontSize: 13, color: "white" }}>{u.initials}</span>
+                      style={{ backgroundColor: getColor(u.id) }}>
+                      <span style={{ ...F, fontWeight: 600, fontSize: 13, color: "white" }}>{getInitials(u.firstName, u.lastName)}</span>
                     </div>
-                    <span style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{u.name}</span>
+                    <span style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{u.firstName} {u.lastName}</span>
                   </div>
                 </td>
                 <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{u.email}</td>
-                <td className="px-4 py-4"><Badge label={u.role} color={u.role === "Admin" ? "brown" : "gray"} /></td>
                 <td className="px-4 py-4">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: u.status === "Active" ? "#4ade80" : "#f87171" }} />
-                    <Badge label={u.status} color={u.status === "Active" ? "green" : "red"} />
-                  </div>
+                  <button onClick={() => handleToggleRole(u)} className="hover:opacity-80">
+                    <Badge label={u.role === "ADMIN" ? "Admin" : "Customer"} color={u.role === "ADMIN" ? "brown" : "gray"} />
+                  </button>
                 </td>
-                <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{u.lastLogin}</td>
+                <td className="px-4 py-4">
+                  <button onClick={() => handleToggleStatus(u)} className="hover:opacity-80 flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: u.status === "ACTIVE" ? "#4ade80" : "#f87171" }} />
+                    <Badge label={u.status === "ACTIVE" ? "Active" : "Suspended"} color={u.status === "ACTIVE" ? "green" : "red"} />
+                  </button>
+                </td>
+                <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "Never"}</td>
                 <td className="px-4 py-4">
                   <div className="flex gap-2">
-                    <button className="p-1.5 rounded hover:bg-[#f5ece7]"><Pencil size={14} color="#4e453e" /></button>
-                    <button className="p-1.5 rounded hover:bg-[#fee2e2]"><Trash2 size={14} color="#4e453e" /></button>
+                    <button onClick={() => handleDelete(u.id)} className="p-1.5 rounded hover:bg-[#fee2e2]"><Trash2 size={14} color="#4e453e" /></button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: "1px solid #d1c4bb" }}>
-          <span style={{ ...F, fontSize: 14, color: "#4e453e" }}>Showing 1 to 4 of 128 results</span>
-          <div className="flex gap-2">
-            <button className="p-1.5 rounded" style={{ border: "1px solid #d1c4bb" }}><ChevronLeft size={14} color="#4e453e" /></button>
-            <button className="p-1.5 rounded" style={{ border: "1px solid #d1c4bb" }}><ChevronRight size={14} color="#4e453e" /></button>
+      </div>
+
+      {/* Add User Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
+            <h2 className="text-xl font-bold mb-4" style={PF}>Add New User</h2>
+            <div className="flex flex-col gap-4">
+              <input placeholder="First Name" className="border p-2 rounded text-sm outline-none" 
+                value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
+              <input placeholder="Last Name" className="border p-2 rounded text-sm outline-none" 
+                value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
+              <input placeholder="Email" className="border p-2 rounded text-sm outline-none" 
+                value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+              <input type="password" placeholder="Temporary Password" className="border p-2 rounded text-sm outline-none" 
+                value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+              <select className="border p-2 rounded text-sm outline-none" 
+                value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                <option value="USER">Customer</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 rounded text-sm hover:bg-gray-100" style={F}>Cancel</button>
+              <button onClick={handleAddSubmit} disabled={saving} className="px-4 py-2 rounded text-sm text-white hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: "#6b5948", ...F }}>
+                {saving ? "Creating..." : "Create User"}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -621,7 +1243,6 @@ function VouchersSection() {
 // ── Reviews ───────────────────────────────────────────────────────────────────
 const reviewCards = [
   {
-    img: imgReview1,
     product: "Celestial Amber Eau de Parfum",
     order: "Order #ORD-8821",
     date: "Oct 24, 2024",
@@ -634,7 +1255,6 @@ const reviewCards = [
     actions: ["Reply to Customer", "Hide", "Approve"],
   },
   {
-    img: imgReview2,
     product: "Midnight Vetiver Candle",
     order: "Order #ORD-8799",
     date: "Oct 23, 2024",
@@ -688,7 +1308,12 @@ function ReviewsSection() {
           <div key={idx} className="rounded-xl p-5 flex flex-col gap-4" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
             {/* Product */}
             <div className="flex items-center gap-3">
-              <img src={r.img} alt={r.product} className="w-14 h-14 rounded-lg object-cover" style={{ backgroundColor: "#efe6e2" }} />
+              <div
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg"
+                style={{ backgroundColor: "#efe6e2", color: "#6b5948", ...F, fontWeight: 700, fontSize: 13 }}
+              >
+                {r.product.split(" ").slice(0, 2).map((word) => word[0]).join("")}
+              </div>
               <div className="flex-1 min-w-0">
                 <p style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{r.product}</p>
                 <p style={{ ...F, fontSize: 12, color: "#4e453e" }}>{r.order} · {r.date}</p>

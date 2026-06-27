@@ -18,10 +18,16 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.be.order.internal.vnpay.VNPayService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.be.order.internal.momo.MomoService;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -36,15 +42,21 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final PromoService promoService;
+    private final VNPayService vnPayService;
+    private final MomoService momoService;
 
     public OrderService(OrderRepository orderRepository,
                         ProductRepository productRepository,
                         UserRepository userRepository,
-                        PromoService promoService) {
+                        PromoService promoService,
+                        VNPayService vnPayService,
+                        MomoService momoService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.promoService = promoService;
+        this.vnPayService = vnPayService;
+        this.momoService = momoService;
     }
 
     /**
@@ -72,6 +84,7 @@ public class OrderService {
         order.setShipState(request.shipState());
         order.setShipZip(request.shipZip());
         order.setShipCountry(request.shipCountry() != null ? request.shipCountry() : "US");
+        order.setPaymentMethod(request.paymentMethod() != null ? request.paymentMethod() : "COD");
 
         // Link user if authenticated
         if (userEmail != null) {
@@ -120,6 +133,29 @@ public class OrderService {
         order.setTotal(subtotal.subtract(discount).setScale(2, RoundingMode.HALF_UP));
 
         Order saved = orderRepository.save(order);
+
+        // Add reward points for registered users
+        if (userEmail != null) {
+            userRepository.findByEmail(userEmail).ifPresent(u -> {
+                int earnedPoints = saved.getTotal().divide(BigDecimal.TEN, RoundingMode.DOWN).intValue();
+                u.setRewardPoints((u.getRewardPoints() != null ? u.getRewardPoints() : 0) + earnedPoints);
+                userRepository.save(u);
+            });
+        }
+
+        if ("VNPAY".equalsIgnoreCase(saved.getPaymentMethod())) {
+            HttpServletRequest requestAttr = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            String orderInfo = "Payment for order " + saved.getOrderNumber();
+            String paymentUrl = vnPayService.createOrder(saved.getOrderNumber(), saved.getTotal(), orderInfo, requestAttr);
+            saved.setPaymentUrl(paymentUrl);
+            orderRepository.save(saved);
+        } else if ("MOMO".equalsIgnoreCase(saved.getPaymentMethod())) {
+            String orderInfo = "Payment for order " + saved.getOrderNumber();
+            String paymentUrl = momoService.createOrder(saved.getOrderNumber(), saved.getTotal(), orderInfo);
+            saved.setPaymentUrl(paymentUrl);
+            orderRepository.save(saved);
+        }
+
         return toDTO(saved);
     }
 
@@ -129,7 +165,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderDTO> getUserOrders(String userEmail) {
         return orderRepository.findByUserEmailOrderByCreatedAtDesc(userEmail)
-                .stream().map(this::toDTO).toList();
+                .stream().map(o -> toDTO(o)).toList();
     }
 
     /**
@@ -141,13 +177,50 @@ public class OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderNumber));
         return toDTO(order);
     }
+    /**
+     * Retries payment for a PENDING order, optionally updating the payment method.
+     */
+    @Transactional
+    public OrderDTO retryPayment(String orderNumber, String newPaymentMethod, String userEmail) {
+        Order order = orderRepository.findByOrderNumberAndUserEmail(orderNumber, userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderNumber));
+        
+        if (!"PENDING".equalsIgnoreCase(order.getStatus())) {
+            throw new IllegalStateException("Cannot retry payment for an order that is not PENDING");
+        }
+        
+        // Update payment method if provided
+        if (newPaymentMethod != null && !newPaymentMethod.isBlank()) {
+            if (!List.of("VNPAY", "MOMO", "COD").contains(newPaymentMethod.toUpperCase())) {
+                throw new IllegalArgumentException("Invalid payment method: " + newPaymentMethod);
+            }
+            order.setPaymentMethod(newPaymentMethod.toUpperCase());
+        }
+        
+        if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+            order.setPaymentUrl(null);
+        } else {
+            String orderInfo = "Payment for order " + order.getOrderNumber();
+            String paymentUrl;
+            if ("VNPAY".equalsIgnoreCase(order.getPaymentMethod())) {
+                HttpServletRequest requestAttr = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+                paymentUrl = vnPayService.createOrder(order.getOrderNumber(), order.getTotal(), orderInfo, requestAttr);
+            } else {
+                paymentUrl = momoService.createOrder(order.getOrderNumber(), order.getTotal(), orderInfo);
+            }
+            order.setPaymentUrl(paymentUrl);
+        }
+        
+        orderRepository.save(order);
+        return toDTO(order);
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private String generateOrderNumber() {
         // Format: LA-XXXXXXXX (8 hex chars)
         String hex = Integer.toHexString(new Random().nextInt(0xFFFFFFF)).toUpperCase();
-        String candidate = "LA-" + String.format("%08s", hex).replace(' ', '0');
+        String candidate = "LA-" + String.format("%8s", hex).replace(' ', '0');
         // Retry on collision (extremely rare)
         if (orderRepository.findByOrderNumber(candidate).isPresent()) {
             return generateOrderNumber();
@@ -183,6 +256,9 @@ public class OrderService {
                 o.getDiscount(),
                 o.getTotal(),
                 o.getPromoCode(),
+                o.getPaymentMethod(),
+                o.getTransactionId(),
+                o.getPaymentUrl(),
                 itemDTOs,
                 o.getCreatedAt()
         );

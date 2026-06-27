@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNav } from "../context";
 import { useCart } from "../context";
 import { Footer } from "../components/Footer";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { products } from "../data";
+import giftBanner from "../../assets/gift-banner.png";
+import { formatPrice, type Product } from "../data";
 import { Check } from "lucide-react";
+import { productsApi } from "../api";
 
 // ── Images ────────────────────────────────────────────────────────────────────
-const IMG_HERO =
-  "https://images.unsplash.com/photo-1625552186152-668cd2f0b707?w=1400&h=600&fit=crop&auto=format";
 const IMG_PACKAGING =
   "https://images.unsplash.com/photo-1759563871375-d5b140f6646e?w=700&h=700&fit=crop&auto=format";
 const IMG_CANDLES_SET =
@@ -63,19 +63,48 @@ const giftSets = [
 ];
 
 const occasions = ["Birthday", "Anniversary", "Housewarming", "Thank You", "Just Because", "Holiday"];
+const isGiftProduct = (product: Product) => product.category === "Gift Collection" || product.category === "Gift Sets";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function GiftCollectionPage() {
   const { navigate } = useNav();
   const { addToCart } = useCart();
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleAdd = (setId: string, productIds: string[]) => {
-    productIds.forEach((pid) => {
-      const product = products.find((p) => p.id === pid);
-      if (product) addToCart(product, 1);
-    });
-    setAddedId(setId);
+  useEffect(() => {
+    productsApi.list()
+      .then((data: Product[]) => { if (data?.length) setAllProducts(data); })
+      .catch((requestError: Error) => setError(requestError.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const giftProducts = useMemo(() => allProducts.filter(isGiftProduct), [allProducts]);
+  const displayGiftSets = useMemo(() => giftProducts.map((product, index) => {
+    const includes = [product.size, product.burnTime, product.scentNotes]
+      .filter((item): item is string => Boolean(item && item !== "-"))
+      .slice(0, 3);
+
+    return {
+      id: product.id,
+      product,
+      name: product.name,
+      tagline: product.tags[0] ?? "Curated gift collection",
+      description: product.description,
+      priceLabel: formatPrice(product.price),
+      originalPriceLabel: null,
+      badge: product.tags[1] ?? (index === 0 ? "Best Seller" : "Gift Set"),
+      badgeColor: index === 0 ? "#6b5948" : "#735a36",
+      includes: includes.length > 0 ? includes : ["Signature gift packaging", "Ready to give", "Lumos Aura selected set"],
+      img: product.image || product.thumbnails?.[0] || IMG_CANDLES_SET,
+    };
+  }), [giftProducts]);
+
+  const handleAdd = (product: Product) => {
+    addToCart(product, 1);
+    setAddedId(product.id);
     setTimeout(() => setAddedId(null), 2000);
   };
 
@@ -83,18 +112,21 @@ export function GiftCollectionPage() {
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden" style={{ height: 420 }}>
+      <div className="relative mt-20 overflow-hidden" style={{ height: "min(620px, 38vw)", minHeight: 360, backgroundColor: "#fff8f5" }}>
         <ImageWithFallback
-          src={IMG_HERO}
+          src={giftBanner}
           alt="Lumos Aura gift boxes with pink ribbon and roses"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: "brightness(0.55)" }}
+          style={{ filter: "none" }}
         />
         <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(to right, rgba(28,22,18,0.7) 40%, transparent 100%)" }}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-36"
+          style={{
+            background: "linear-gradient(to bottom, rgba(255,248,245,0) 0%, rgba(255,248,245,0.68) 58%, #fff8f5 100%)",
+            backdropFilter: "blur(0.2px)",
+          }}
         />
-        <div className="relative flex flex-col justify-center h-full px-16 pt-20">
+        <div className="hidden">
           <p
             style={{
               fontFamily: "'Inter', sans-serif",
@@ -137,7 +169,7 @@ export function GiftCollectionPage() {
         </div>
       </div>
 
-      {/* ── Occasion chips ───────────────────────────────────────────────────── */}
+      {/* ── Occasion chips ─────────────────────────────────────────────────────
       <div
         className="py-5 px-10 flex items-center gap-3 overflow-x-auto"
         style={{ borderBottom: "1px solid #efe6e2" }}
@@ -173,10 +205,18 @@ export function GiftCollectionPage() {
             {o}
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* ── Gift sets ────────────────────────────────────────────────────────── */}
-      <div className="max-w-[1100px] mx-auto w-full px-10 py-16">
+      <div
+        className="relative z-10 max-w-[1180px] mx-auto w-full px-5 md:px-10 pt-10 pb-16 -mt-14"
+        style={{
+          background: "linear-gradient(to bottom, rgba(255,248,245,0.96), #fff8f5 120px)",
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
+          boxShadow: "0 -22px 44px rgba(109,91,74,0.08)",
+        }}
+      >
         <h2
           className="mb-10"
           style={{
@@ -191,7 +231,22 @@ export function GiftCollectionPage() {
         </h2>
 
         <div className="flex flex-col gap-6">
-          {giftSets.map((set, i) => (
+          {loading && (
+            <div className="rounded-2xl p-10 text-center text-[#7f756d]" style={{ backgroundColor: "white", border: "1px solid #efe6e2" }}>
+              Loading gift products...
+            </div>
+          )}
+          {!loading && error && (
+            <div className="rounded-2xl p-10 text-center text-[#7f756d]" style={{ backgroundColor: "white", border: "1px solid #efe6e2" }}>
+              Could not load gift products: {error}
+            </div>
+          )}
+          {!loading && !error && displayGiftSets.length === 0 && (
+            <div className="rounded-2xl p-10 text-center text-[#7f756d]" style={{ backgroundColor: "white", border: "1px solid #efe6e2" }}>
+              No gift products found.
+            </div>
+          )}
+          {!loading && !error && displayGiftSets.map((set, i) => (
             <div
               key={set.id}
               className="rounded-2xl overflow-hidden"
@@ -304,9 +359,9 @@ export function GiftCollectionPage() {
                           color: "#3d3530",
                         }}
                       >
-                        ${set.price}
+                        {set.priceLabel}
                       </span>
-                      {set.originalPrice && (
+                      {set.originalPriceLabel && (
                         <span
                           style={{
                             fontFamily: "'Inter', sans-serif",
@@ -316,12 +371,12 @@ export function GiftCollectionPage() {
                             textDecoration: "line-through",
                           }}
                         >
-                          ${set.originalPrice}
+                          {set.originalPriceLabel}
                         </span>
                       )}
                     </div>
                     <button
-                      onClick={() => handleAdd(set.id, set.productIds)}
+                      onClick={() => handleAdd(set.product)}
                       className="rounded-full px-7 py-3 transition-all hover:opacity-90 flex items-center gap-2"
                       style={{
                         backgroundColor: addedId === set.id ? "#4e453e" : "#6b5948",
@@ -341,7 +396,7 @@ export function GiftCollectionPage() {
                       )}
                     </button>
                     <button
-                      onClick={() => navigate("shop")}
+                      onClick={() => navigate("product", set.product.id)}
                       style={{
                         fontFamily: "'Inter', sans-serif",
                         fontWeight: 500,
@@ -350,7 +405,7 @@ export function GiftCollectionPage() {
                       }}
                       className="hover:opacity-70 transition-opacity"
                     >
-                      Customise →
+                      View details
                     </button>
                   </div>
                 </div>

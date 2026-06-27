@@ -1,7 +1,5 @@
-// Central API client for Lumos Aura backend
-// Change BASE_URL to your deployed backend URL in production
-
-const BASE_URL = "http://localhost:8080/api";
+// Use the current origin. Vite proxies /api to the local Spring Boot server.
+const BASE_URL = "/api";
 
 function getToken(): string | null {
   return localStorage.getItem("lumos_token");
@@ -52,6 +50,15 @@ export const auth = {
 
   updateMe: (data: Record<string, string>) =>
     request("/auth/me", { method: "PUT", body: JSON.stringify(data) }),
+
+  requestPasswordOtp: () =>
+    request("/auth/me/password/request-otp", { method: "POST" }),
+
+  changePassword: (data: { otp: string; newPassword: string }) =>
+    request("/auth/me/password/change", { method: "POST", body: JSON.stringify(data) }),
+
+  googleLogin: (token: string) =>
+    request("/auth/google", { method: "POST", body: JSON.stringify({ token }) }),
 };
 
 // ── Products ──────────────────────────────────────────────────────────────────
@@ -63,6 +70,30 @@ export const productsApi = {
   },
 
   get: (slug: string) => request(`/products/${slug}`),
+
+  create: (data: Record<string, any>) =>
+    request("/products", { method: "POST", body: JSON.stringify(data) }),
+
+  update: (id: number, data: Record<string, any>) =>
+    request(`/products/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  delete: (id: number) =>
+    request(`/products/${id}`, { method: "DELETE" }),
+
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const token = getToken();
+    const res = await fetch(`${BASE_URL}/upload`, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Upload failed");
+    return res.json();
+  },
 };
 
 // ── Orders ────────────────────────────────────────────────────────────────────
@@ -86,6 +117,22 @@ export const ordersApi = {
   list: () => request("/orders"),
 
   get: (orderNumber: string) => request(`/orders/${orderNumber}`),
+
+  retryPayment: (orderNumber: string, paymentMethod?: string) => {
+    let url = `/orders/${orderNumber}/retry-payment`;
+    if (paymentMethod) {
+      url += `?paymentMethod=${paymentMethod}`;
+    }
+    return request(url, { method: "POST" });
+  },
+};
+
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+
+export const wishlistApi = {
+  list: () => request("/wishlist"),
+  add: (productSlug: string) => request(`/wishlist/${productSlug}`, { method: "POST" }),
+  remove: (productSlug: string) => request(`/wishlist/${productSlug}`, { method: "DELETE" }),
 };
 
 // ── Promo ─────────────────────────────────────────────────────────────────────
@@ -107,6 +154,31 @@ export interface AddressPayload {
   zip: string;
   isDefault?: boolean;
 }
+
+export const dashboardApi = {
+  getStats: () => request("/dashboard/stats"),
+};
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+export const usersApi = {
+  list: () => request("/admin/users"),
+  create: (data: Record<string, any>) =>
+    request("/admin/users", { method: "POST", body: JSON.stringify(data) }),
+  updateRole: (id: number, role: string) =>
+    request(`/admin/users/${id}/role?role=${role}`, { method: "PUT" }),
+  updateStatus: (id: number, status: string) =>
+    request(`/admin/users/${id}/status?status=${status}`, { method: "PUT" }),
+  delete: (id: number) => request(`/admin/users/${id}`, { method: "DELETE" }),
+};
+
+// ── Orders (Admin) ────────────────────────────────────────────────────────────
+
+export const adminOrdersApi = {
+  list: () => request("/admin/orders"),
+  updateStatus: (id: number, status: string) =>
+    request(`/admin/orders/${id}/status?status=${status}`, { method: "PUT" }),
+};
 
 export const addressesApi = {
   list: () => request("/addresses"),

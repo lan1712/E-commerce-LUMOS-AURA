@@ -1,0 +1,33 @@
+[2m12:20:59 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/4e9ff36f-fafd-42dd-8ede-f315c5dc175c.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:20:59 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/91a2aa47-c3c6-491e-91bc-dad010bfcd45.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:21:00 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/2dc4799a-afc4-472e-b398-d86adc9aa47f.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:26:01 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/828e4894-8265-47e5-bd59-931c87c10207.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:28:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/b70252bc-7c23-4d72-a6ec-ab734e9f6bb0.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:28:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/2dc4799a-afc4-472e-b398-d86adc9aa47f.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:59:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/b70252bc-7c23-4d72-a6ec-ab734e9f6bb0.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m1:25:05 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/4e9ff36f-fafd-42dd-8ede-f315c5dc175c.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m1:25:06 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/91a2aa47-c3c6-491e-91bc-dad010bfcd45.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m1:25:06 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/3d429b00-d602-4df4-a0b8-ba1fe4c0e6b9.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m1:25:06 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /uploads/2dc4799a-afc4-472e-b398-d86adc9aa47f.png[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)

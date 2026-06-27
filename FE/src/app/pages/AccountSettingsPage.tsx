@@ -1,5 +1,5 @@
 import { useState } from "react";
-import imgOrderProduct from "../../imports/AccountSettingsLumosAura/28190d0da851a53a2fd706f430d889047a75ae8c.png";
+import imgOrderProduct from "../../assets/account/latest-order-product.png";
 import { useNav, useAuth } from "../context";
 import { Footer } from "../components/Footer";
 import { ChevronRight, Gift, X, Eye, EyeOff } from "lucide-react";
@@ -69,18 +69,35 @@ export function AccountSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [pwForm, setPwForm] = useState({ otp: "", next: "", confirm: "" });
   const [showPw, setShowPw] = useState(false);
   const [pwSaved, setPwSaved] = useState(false);
 
-  const handlePasswordSave = () => {
-    if (pwForm.next && pwForm.next === pwForm.confirm) {
-      setPwSaved(true);
-      setTimeout(() => {
-        setPwSaved(false);
-        setShowPasswordModal(false);
-        setPwForm({ current: "", next: "", confirm: "" });
-      }, 1800);
+  const handleRequestPasswordChange = async () => {
+    try {
+      await authApi.requestPasswordOtp();
+      setShowPasswordModal(true);
+      alert("An OTP has been sent to your email.");
+    } catch (e: any) {
+      alert("Failed to send OTP: " + (e.message || "Unknown error"));
+    }
+  };
+
+  const handlePasswordSave = async () => {
+    if (pwForm.next && pwForm.next === pwForm.confirm && pwForm.otp) {
+      try {
+        await authApi.changePassword({ otp: pwForm.otp, newPassword: pwForm.next });
+        setPwSaved(true);
+        setTimeout(() => {
+          setPwSaved(false);
+          setShowPasswordModal(false);
+          setPwForm({ otp: "", next: "", confirm: "" });
+        }, 1800);
+      } catch (e: any) {
+        alert("Password change failed: " + (e.message || "Unknown error"));
+      }
+    } else {
+      alert("Please check that your passwords match and OTP is entered.");
     }
   };
 
@@ -88,13 +105,13 @@ export function AccountSettingsPage() {
     firstName: user?.firstName ?? "",
     lastName: user?.lastName ?? "",
     email: user?.email ?? "",
-    phone: "",
+    phone: user?.phoneNumber ?? "",
   });
 
   const handleSave = async () => {
     setSaveError("");
     try {
-      await authApi.updateMe({ firstName: form.firstName, lastName: form.lastName });
+      await authApi.updateMe({ firstName: form.firstName, lastName: form.lastName, phoneNumber: form.phone });
       await refreshUser();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -191,7 +208,7 @@ export function AccountSettingsPage() {
                   lineHeight: "56px",
                 }}
               >
-                2,450
+                {user?.rewardPoints?.toLocaleString() || "0"}
               </p>
               <button
                 className="flex items-center gap-1 mt-3 hover:opacity-70 transition-opacity"
@@ -343,7 +360,7 @@ export function AccountSettingsPage() {
                   Password
                 </p>
                 <button
-                  onClick={() => setShowPasswordModal(true)}
+                  onClick={handleRequestPasswordChange}
                   style={{
                     fontFamily: "'Inter', sans-serif",
                     fontWeight: 500,
@@ -446,7 +463,7 @@ export function AccountSettingsPage() {
             ) : (
               <div className="flex flex-col gap-6">
                 {[
-                  { label: "Current Password", key: "current" as const },
+                  { label: "OTP from Email", key: "otp" as const },
                   { label: "New Password", key: "next" as const },
                   { label: "Confirm New Password", key: "confirm" as const },
                 ].map(({ label, key }) => (

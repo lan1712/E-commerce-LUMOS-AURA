@@ -33,10 +33,42 @@ public class ProductController {
     }
 
     /**
-     * GET /api/products/{slug}
+     * GET /{slug}
      */
     @GetMapping("/{slug}")
     public ResponseEntity<ProductDTO> getProduct(@PathVariable String slug) {
         return ResponseEntity.ok(productService.getProductBySlug(slug));
+    }
+
+    /**
+     * POST /api/products
+     * Admin only. Create a new product.
+     */
+    @PostMapping
+    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductCreateRequest request) {
+        ProductDTO created = productService.createProduct(request);
+        return ResponseEntity.ok(created);
+    }
+
+    /**
+     * PUT /api/products/{id}
+     * Admin only. Update an existing product.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductDTO> updateProduct(
+            @PathVariable Long id,
+            @RequestBody ProductUpdateRequest request) {
+        ProductDTO updated = productService.updateProduct(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * DELETE /api/products/{id}
+     * Admin only. Soft delete a product.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 }

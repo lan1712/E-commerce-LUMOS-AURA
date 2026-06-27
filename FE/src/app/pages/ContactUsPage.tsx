@@ -1,5 +1,5 @@
 import { useState } from "react";
-import imgMap from "../../imports/ContactUsLumosAura/d23f576f5fdb799e18abbb974d927f937b7c42d0.png";
+import imgMap from "../../assets/contact/map-preview.png";
 import { useNav } from "../context";
 import { Footer } from "../components/Footer";
 import { MapPin, Mail, Phone, Plus, Minus } from "lucide-react";

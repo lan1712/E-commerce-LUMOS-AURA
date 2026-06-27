@@ -40,7 +40,7 @@ export function Footer() {
             {[
               { label: "Brand Story", page: "about" as const },
               { label: "The Collection", page: "shop" as const },
-              { label: "Gift Collection", page: "shop" as const },
+              { label: "Gift Collection", page: "gift" as const },
               { label: "About", page: "about" as const },
             ].map(({ label, page }) => (
               <button

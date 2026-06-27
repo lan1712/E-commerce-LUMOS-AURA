@@ -6,7 +6,6 @@ import com.example.be.auth.api.RegisterRequest;
 import com.example.be.auth.api.UserProfile;
 import com.example.be.auth.api.AuthController;
 import com.example.be.auth.domain.UserRole;
-import com.example.be.auth.internal.CustomUserDetailsService;
 import com.example.be.auth.internal.JwtService;
 import com.example.be.auth.internal.UserService;
 import com.example.be.auth.security.JwtAuthFilter;
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,8 +63,7 @@ class AuthIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
     private UserService userService;
@@ -74,9 +73,6 @@ class AuthIntegrationTest {
 
     @MockitoBean
     private JwtService jwtService;
-
-    @MockitoBean
-    private CustomUserDetailsService customUserDetailsService;
 
     // -----------------------------------------------------------------------
     // 1. Register → 201 Created
@@ -147,31 +143,12 @@ class AuthIntegrationTest {
 
     @Test
     void me_withValidToken_returns200() throws Exception {
-        String token = "valid-token";
-
-        // Mock Claims
-        Claims claims = mock(Claims.class);
-        when(claims.getSubject()).thenReturn("user@example.com");
-        when(claims.getExpiration()).thenReturn(new Date(System.currentTimeMillis() + 3600_000));
-
-        // Mock JwtService
-        when(jwtService.isTokenValid(token)).thenReturn(true);
-        when(jwtService.parseToken(token)).thenReturn(claims);
-
-        // Mock UserDetailsService (used by JwtAuthFilter to populate SecurityContext)
-        UserDetails userDetails = new User(
-                "user@example.com",
-                "{noop}password",
-                List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-        when(userDetailsService.loadUserByUsername("user@example.com")).thenReturn(userDetails);
-
         // Mock UserService.getCurrentUser (used by AuthController.me)
         UserProfile profile = new UserProfile(1L, "user@example.com", null, null, UserRole.USER);
         when(userService.getCurrentUser("user@example.com")).thenReturn(profile);
 
         mockMvc.perform(get("/api/auth/me")
-                        .header("Authorization", "Bearer " + token))
+                        .with(user("user@example.com").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("user@example.com"));
     }
@@ -202,7 +179,7 @@ class AuthIntegrationTest {
         when(userDetailsService.loadUserByUsername("user@example.com")).thenReturn(userDetails);
 
         mockMvc.perform(post("/api/products")
-                        .header("Authorization", "Bearer " + token)
+                        .with(user("user@example.com").roles("USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isForbidden());

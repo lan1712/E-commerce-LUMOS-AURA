@@ -8,11 +8,20 @@ export function Navbar() {
   const { isLoggedIn, user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [scrolled, setScrolled] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 60);
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [currentPage]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +30,22 @@ export function Navbar() {
     setQuery("");
   };
 
+  const isHomeTop = currentPage === "home" && !scrolled;
+  const foregroundColor = isHomeTop ? "#fff8f5" : "#6b5948";
+  const mutedColor = isHomeTop ? "rgba(255,248,245,0.82)" : "#7f756d";
+  const navTextColor = isHomeTop ? "#fff8f5" : "#4e453e";
+  const activeColor = isHomeTop ? "#ffffff" : "#6b5948";
+  const activeBorder = isHomeTop ? "rgba(255,248,245,0.9)" : "#6b5948";
+
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-[12px]"
-      style={{ backgroundColor: "rgba(255,248,245,0.85)", borderBottom: "1px solid rgba(255,255,255,0.2)" }}
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      style={{
+        backgroundColor: isHomeTop ? "transparent" : "rgba(255,248,245,0.9)",
+        borderBottom: isHomeTop ? "1px solid transparent" : "1px solid rgba(107,89,72,0.12)",
+        backdropFilter: isHomeTop ? "none" : "blur(18px)",
+        boxShadow: isHomeTop ? "none" : "0 10px 30px rgba(109,91,74,0.08)",
+      }}
     >
       <div className="max-w-[1440px] mx-auto px-10 h-20 flex items-center justify-between">
         {/* Left nav links */}
@@ -37,9 +58,10 @@ export function Navbar() {
               fontWeight: 600,
               fontSize: 14,
               letterSpacing: "0.7px",
-              color: currentPage === "shop" ? "#6b5948" : "#4e453e",
-              borderBottom: currentPage === "shop" ? "2px solid #6b5948" : "2px solid transparent",
+              color: currentPage === "shop" ? activeColor : navTextColor,
+              borderBottom: currentPage === "shop" ? `2px solid ${activeBorder}` : "2px solid transparent",
               paddingBottom: 2,
+              textShadow: isHomeTop ? "0 1px 16px rgba(0,0,0,0.28)" : "none",
             }}
           >
             Shop
@@ -51,9 +73,10 @@ export function Navbar() {
               fontWeight: 600,
               fontSize: 14,
               letterSpacing: "0.7px",
-              color: currentPage === "gift" ? "#6b5948" : "#4e453e",
-              borderBottom: currentPage === "gift" ? "2px solid #6b5948" : "2px solid transparent",
+              color: currentPage === "gift" ? activeColor : navTextColor,
+              borderBottom: currentPage === "gift" ? `2px solid ${activeBorder}` : "2px solid transparent",
               paddingBottom: 2,
+              textShadow: isHomeTop ? "0 1px 16px rgba(0,0,0,0.28)" : "none",
             }}
           >
             Gift Collection
@@ -65,9 +88,10 @@ export function Navbar() {
               fontWeight: 600,
               fontSize: 14,
               letterSpacing: "0.7px",
-              color: currentPage === "about" ? "#6b5948" : "#4e453e",
-              borderBottom: currentPage === "about" ? "2px solid #6b5948" : "2px solid transparent",
+              color: currentPage === "about" ? activeColor : navTextColor,
+              borderBottom: currentPage === "about" ? `2px solid ${activeBorder}` : "2px solid transparent",
               paddingBottom: 2,
+              textShadow: isHomeTop ? "0 1px 16px rgba(0,0,0,0.28)" : "none",
             }}
           >
             About
@@ -82,9 +106,10 @@ export function Navbar() {
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
             fontSize: 40,
-            color: "#6b5948",
+            color: foregroundColor,
             letterSpacing: "-2px",
             lineHeight: 1,
+            textShadow: isHomeTop ? "0 1px 18px rgba(0,0,0,0.32)" : "none",
           }}
         >
           Lumos Aura
@@ -111,7 +136,7 @@ export function Navbar() {
               className="shrink-0 hover:opacity-70 transition-opacity"
               title="Search"
             >
-              <Search size={16} color="#6b5948" />
+              <Search size={16} color={searchOpen ? "#6b5948" : foregroundColor} />
             </button>
             <input
               ref={inputRef}
@@ -146,15 +171,15 @@ export function Navbar() {
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate("account")}
+                onClick={() => navigate(user?.role === "ADMIN" ? "admin" : "account")}
                 className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
                 title={user?.firstName || "My Account"}
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "#6b5948" }}
+                  style={{ backgroundColor: isHomeTop ? "#fff8f5" : "#6b5948" }}
                 >
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, color: "white" }}>
+                  <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, color: isHomeTop ? "#6b5948" : "white" }}>
                     {(user?.firstName?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
                   </span>
                 </div>
@@ -164,7 +189,7 @@ export function Navbar() {
                 className="hover:opacity-70 transition-opacity"
                 title="Log Out"
               >
-                <LogOut size={15} color="#7f756d" />
+                <LogOut size={15} color={mutedColor} />
               </button>
             </div>
           ) : (
@@ -173,7 +198,7 @@ export function Navbar() {
               className="hover:opacity-70 transition-opacity"
               title="Sign In"
             >
-              <User size={16} color="#6b5948" />
+              <User size={16} color={foregroundColor} />
             </button>
           )}
 
@@ -183,16 +208,16 @@ export function Navbar() {
             className="hover:opacity-70 transition-opacity relative"
             title="Cart"
           >
-            <ShoppingBag size={16} color="#6b5948" />
+            <ShoppingBag size={16} color={foregroundColor} />
             {itemCount > 0 && (
               <span
                 className="absolute -top-2 -right-2 rounded-full w-4 h-4 flex items-center justify-center"
                 style={{
-                  backgroundColor: "#6b5948",
+                  backgroundColor: isHomeTop ? "#fff8f5" : "#6b5948",
                   fontFamily: "'Inter', sans-serif",
                   fontSize: 9,
                   fontWeight: 700,
-                  color: "white",
+                  color: isHomeTop ? "#6b5948" : "white",
                 }}
               >
                 {itemCount}

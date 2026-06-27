@@ -14,10 +14,18 @@ public record AuthResponse(
     String lastName,
     UserRole role
 ) {
+    public AuthResponse(String token, UserProfile profile) {
+        this(token, profile.id(), profile.email(), profile.firstName(), profile.lastName(), profile.role());
+    }
+
     /** Convenience constructor from a UserProfile + token. */
     public static AuthResponse of(String token, UserProfile profile) {
         return new AuthResponse(token, profile.id(), profile.email(),
                 profile.firstName(), profile.lastName(), profile.role());
+    }
+
+    public UserProfile user() {
+        return new UserProfile(id, email, firstName, lastName, role);
     }
 }
 

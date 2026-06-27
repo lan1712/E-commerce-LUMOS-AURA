@@ -37,7 +37,7 @@ class UserProfileRoundTripPropertyTest {
     void setUp() {
         userRepository = mock(UserRepository.class);
         jwtService = mock(JwtService.class);
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(4);
         userService = new UserService(userRepository, jwtService, passwordEncoder);
     }
 

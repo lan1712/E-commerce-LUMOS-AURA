@@ -1,20 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, X } from "lucide-react";
-import { useNav, useCart } from "../context";
-import { products, Product } from "../data";
+import { useNav, useCart, useAuth } from "../context";
+import { formatPrice, type Product } from "../data";
 import { Footer } from "../components/Footer";
-
-const INITIAL_WISHLIST = ["sandalwood-moonstone", "midnight-constellation", "ethereal-bloom", "amber-fig"];
+import { wishlistApi, productsApi } from "../api";
 
 export function WishlistPage() {
   const { navigate } = useNav();
   const { addToCart } = useCart();
-  const [wishlist, setWishlist] = useState<string[]>(INITIAL_WISHLIST);
+  const { isLoggedIn } = useAuth();
+  const [wishlistSlugs, setWishlistSlugs] = useState<string[]>([]);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  const wishedProducts = products.filter((p) => wishlist.includes(p.id));
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
-  const remove = (id: string) => setWishlist((prev) => prev.filter((x) => x !== id));
+  useEffect(() => {
+    productsApi.list().then(setAllProducts).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    wishlistApi.list()
+      .then((data: any[]) => {
+        setWishlistSlugs(data.map(i => i.productSlug));
+      })
+      .catch(() => {});
+  }, [isLoggedIn]);
+
+  const wishedProducts = allProducts.filter((p) => wishlistSlugs.includes(p.id));
+
+  const remove = async (id: string) => {
+    try {
+      await wishlistApi.remove(id);
+      setWishlistSlugs((prev) => prev.filter((x) => x !== id));
+    } catch(e) {
+      alert("Failed to remove item.");
+    }
+  };
 
   const handleAdd = (product: Product) => {
     addToCart(product, 1);
@@ -188,7 +210,7 @@ export function WishlistPage() {
                         color: "#3d3530",
                       }}
                     >
-                      ${product.price}
+                      {formatPrice(product.price)}
                     </span>
                     <button
                       onClick={() => handleAdd(product)}

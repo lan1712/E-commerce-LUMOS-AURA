@@ -1,0 +1,21 @@
+t=2026-06-22T17:02:28+0700 lvl=info msg="no configuration paths supplied"
+t=2026-06-22T17:02:28+0700 lvl=info msg="using configuration at default config path" path=C:\\Users\\Laan\\AppData\\Local\\ngrok\\ngrok.yml
+t=2026-06-22T17:02:28+0700 lvl=info msg="open config file" path=C:\\Users\\Laan\\AppData\\Local\\ngrok\\ngrok.yml err=nil
+t=2026-06-22T17:02:28+0700 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-06-22T17:02:28+0700 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2026-06-22T17:02:28+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:02:29+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:02:30+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:02:32+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:02:35+0700 lvl=info msg=start pg=/api/tunnels id=a4ac0102557c8a34
+t=2026-06-22T17:02:35+0700 lvl=info msg=end pg=/api/tunnels id=a4ac0102557c8a34 status=200 dur=1.1985ms
+t=2026-06-22T17:02:36+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:02:44+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:02:54+0700 lvl=info msg=start pg=/api/tunnels id=e30bacf1a7012163
+t=2026-06-22T17:02:54+0700 lvl=info msg=end pg=/api/tunnels id=e30bacf1a7012163 status=200 dur=1.657ms
+t=2026-06-22T17:03:00+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:03:31+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:04:01+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:04:31+0700 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+t=2026-06-22T17:04:44+0700 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+t=2026-06-22T17:04:44+0700 lvl=info msg="session closing" obj=tunnels.session err=nil

@@ -58,4 +58,16 @@ public class OrderController {
     public ResponseEntity<OrderDTO> getOrder(@PathVariable String orderNumber, Principal principal) {
         return ResponseEntity.ok(orderService.getOrderByNumber(orderNumber, principal.getName()));
     }
+
+    /**
+     * POST /api/orders/{orderNumber}/retry-payment
+     * Retries payment for an existing order, optionally updating the payment method.
+     */
+    @PostMapping("/{orderNumber}/retry-payment")
+    public ResponseEntity<OrderDTO> retryPayment(
+            @PathVariable String orderNumber,
+            @RequestParam(required = false) String paymentMethod,
+            Principal principal) {
+        return ResponseEntity.ok(orderService.retryPayment(orderNumber, paymentMethod, principal.getName()));
+    }
 }

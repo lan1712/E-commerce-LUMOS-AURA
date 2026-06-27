@@ -1,7 +1,7 @@
-import { ShoppingBag, Plus } from "lucide-react";
-import { useCart } from "../context";
-import { useNav } from "../context";
-import type { Product } from "../data";
+import { Plus } from "lucide-react";
+import { useCart, useNav } from "../context";
+import { formatPrice, type Product } from "../data";
+import { ProductImage } from "./ProductImage";
 
 interface ProductCardProps {
   product: Product;
@@ -18,12 +18,10 @@ export function ProductCard({ product }: ProductCardProps) {
         style={{ backgroundColor: "#fff8f5", height: 300, boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}
         onClick={() => navigate("product", product.id)}
       >
-        <img
-          src={product.image}
-          alt={product.name}
+        <ProductImage
+          product={product}
           className="object-contain h-[225px] w-auto transition-transform duration-500 group-hover:scale-105"
         />
-        {/* Quick add button */}
         <button
           className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
           style={{
@@ -34,8 +32,8 @@ export function ProductCard({ product }: ProductCardProps) {
             letterSpacing: "0.7px",
             color: "white",
           }}
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             addToCart(product);
           }}
         >
@@ -58,7 +56,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </p>
         <div className="flex justify-center gap-2">
-          {product.tags.map((tag) => (
+          {product.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
               className="px-3 py-0.5 rounded-full"
@@ -85,7 +83,7 @@ export function ProductCard({ product }: ProductCardProps) {
             marginTop: 4,
           }}
         >
-          ${product.price.toFixed(2)}
+          {formatPrice(product.price)}
         </p>
       </div>
     </div>

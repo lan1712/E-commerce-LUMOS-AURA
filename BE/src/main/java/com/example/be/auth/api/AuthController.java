@@ -30,6 +30,16 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleLogin(@RequestBody java.util.Map<String, String> body) {
+        String token = body.get("token");
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        AuthResponse response = userService.loginWithGoogle(token);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserProfile> getCurrentUser(Principal principal) {
         UserProfile profile = userService.getCurrentUser(principal.getName());
@@ -42,5 +52,19 @@ public class AuthController {
             @Valid @RequestBody UpdateProfileRequest request) {
         UserProfile profile = userService.updateProfile(principal.getName(), request);
         return ResponseEntity.ok(profile);
+    }
+
+    @PostMapping("/me/password/request-otp")
+    public ResponseEntity<Void> requestPasswordOtp(Principal principal) {
+        userService.requestPasswordChangeOtp(principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/me/password/change")
+    public ResponseEntity<Void> changePassword(
+            Principal principal,
+            @Valid @RequestBody PasswordChangeRequest request) {
+        userService.changePasswordWithOtp(principal.getName(), request.otp(), request.newPassword());
+        return ResponseEntity.ok().build();
     }
 }

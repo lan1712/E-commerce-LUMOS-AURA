@@ -7,5 +7,11 @@ public record UserProfile(
     String email,
     String firstName,
     String lastName,
-    UserRole role
-) {}
+    UserRole role,
+    String phoneNumber,
+    Integer rewardPoints
+) {
+    public UserProfile(Long id, String email, String firstName, String lastName, UserRole role) {
+        this(id, email, firstName, lastName, role, null, 0);
+    }
+}

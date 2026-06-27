@@ -1,10 +1,11 @@
 import { useState } from "react";
-import imgMoonlit from "../../imports/SignInLumosAura/0dd62d75ac29f77054f3676f0440e8af1ee90b14.png";
+import { GoogleLogin } from "@react-oauth/google";
+import imgMoonlit from "../../assets/auth/sign-in-candle.png";
 import { useNav, useAuth } from "../context";
 
 export function SignInPage() {
   const { navigate } = useNav();
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const [mode, setMode] = useState<"signin" | "create">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,6 +14,29 @@ export function SignInPage() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) {
+      setError("Google did not return a valid credential.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      const u = JSON.parse(localStorage.getItem("lumos_user") || "{}");
+      if (u.role === "ADMIN") {
+        navigate("admin");
+      } else {
+        navigate("account");
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Google login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!email || !password) { setError("Please fill in all fields."); return; }
@@ -24,7 +48,13 @@ export function SignInPage() {
       } else {
         await register(email, password, firstName, lastName);
       }
-      navigate("account");
+      
+      const u = JSON.parse(localStorage.getItem("lumos_user") || "{}");
+      if (u.role === "ADMIN") {
+        navigate("admin");
+      } else {
+        navigate("account");
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -241,21 +271,28 @@ export function SignInPage() {
 
           {/* Social buttons */}
           <div className="flex flex-col gap-4">
-            {[
-              { label: "Continue with Apple", icon: "🍎" },
-              { label: "Continue with Google", icon: "G" },
-            ].map((btn) => (
-              <button
-                key={btn.label}
-                className="w-full rounded-full py-4 flex items-center justify-center gap-3 hover:bg-[rgba(239,230,226,0.3)] transition-colors"
-                style={{ border: "1px solid rgba(209,196,187,0.6)" }}
-              >
-                <span style={{ fontSize: 16 }}>{btn.icon}</span>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "0.7px", color: "#6b5948" }}>
-                  {btn.label}
-                </span>
-              </button>
-            ))}
+            <button
+              className="w-full rounded-full py-4 flex items-center justify-center gap-3 hover:bg-[rgba(239,230,226,0.3)] transition-colors"
+              style={{ border: "1px solid rgba(209,196,187,0.6)" }}
+            >
+              <span style={{ fontSize: 16 }}>🍎</span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "0.7px", color: "#6b5948" }}>
+                Continue with Apple
+              </span>
+            </button>
+            <div className="flex w-full justify-center overflow-hidden rounded-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Google Login was unsuccessful. Please try again.")}
+                type="standard"
+                theme="outline"
+                size="large"
+                text="continue_with"
+                shape="pill"
+                logo_alignment="center"
+                width="405"
+              />
+            </div>
           </div>
         </div>
       </div>
