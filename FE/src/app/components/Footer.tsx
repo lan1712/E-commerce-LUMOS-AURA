@@ -5,10 +5,10 @@ export function Footer() {
 
   return (
     <footer style={{ backgroundColor: "#f5ece7" }} className="w-full py-20">
-      <div className="max-w-[1440px] mx-auto px-10">
-        <div className="grid grid-cols-12 gap-6">
+      <div className="max-w-[1440px] mx-auto px-5 sm:px-10">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:gap-6">
           {/* Brand column */}
-          <div className="col-span-4">
+          <div className="md:col-span-4">
             <div
               style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 40, color: "#6b5948", marginBottom: 16 }}
             >
@@ -17,7 +17,7 @@ export function Footer() {
             <p
               style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#4e453e", lineHeight: "19.5px" }}
             >
-              Bridging high-end olfactory art with cosmic<br />mysticism.
+              Bridging high-end olfactory art with cosmic mysticism.
             </p>
             <div className="flex gap-4 mt-8">
               {["Instagram", "Pinterest", "TikTok"].map((s) => (
@@ -33,7 +33,7 @@ export function Footer() {
           </div>
 
           {/* Links columns */}
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#4e453e", marginBottom: 16 }}>
               EXPLORE
             </p>
@@ -54,7 +54,7 @@ export function Footer() {
             ))}
           </div>
 
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#4e453e", marginBottom: 16 }}>
               HELP
             </p>
@@ -75,7 +75,7 @@ export function Footer() {
             ))}
           </div>
 
-          <div className="col-span-4 flex flex-col justify-between items-end">
+          <div className="flex flex-col justify-between items-stretch md:col-span-4 md:items-end">
             {/* Map + address card */}
             <div
               className="w-full rounded-2xl overflow-hidden"

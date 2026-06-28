@@ -145,7 +145,7 @@ export function GiftCollectionPage() {
             style={{
               fontFamily: "'Playfair Display', serif",
               fontWeight: 400,
-              fontSize: 56,
+              fontSize: "clamp(40px, 11vw, 56px)",
               color: "#fff8f5",
               lineHeight: "64px",
               letterSpacing: "-0.5px",
@@ -172,7 +172,7 @@ export function GiftCollectionPage() {
 
       {/* ── Occasion chips ─────────────────────────────────────────────────────
       <div
-        className="py-5 px-10 flex items-center gap-3 overflow-x-auto"
+        className="py-5 px-5 sm:px-10 flex items-center gap-3 overflow-x-auto"
         style={{ borderBottom: "1px solid #efe6e2" }}
       >
         <span
@@ -210,7 +210,7 @@ export function GiftCollectionPage() {
 
       {/* ── Gift sets ────────────────────────────────────────────────────────── */}
       <div
-        className="relative z-10 max-w-[1180px] mx-auto w-full px-5 md:px-10 pt-10 pb-16 -mt-14"
+        className="relative z-10 max-w-[1180px] mx-auto w-[calc(100%-24px)] px-5 pt-8 pb-14 -mt-10 sm:w-full md:px-10 md:pt-10 md:pb-16 md:-mt-14"
         style={{
           background: "linear-gradient(to bottom, rgba(255,248,245,0.96), #fff8f5 120px)",
           borderTopLeftRadius: 32,
@@ -223,9 +223,9 @@ export function GiftCollectionPage() {
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
-            fontSize: 40,
+            fontSize: "clamp(34px, 8vw, 40px)",
             color: "#3d3530",
-            lineHeight: "48px",
+            lineHeight: 1.2,
           }}
         >
           Gift Sets
@@ -259,11 +259,11 @@ export function GiftCollectionPage() {
             >
               <div
                 className="grid"
-                style={{ gridTemplateColumns: i % 2 === 0 ? "380px 1fr" : "1fr 380px" }}
+                style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))" }}
               >
                 {/* Image */}
                 {i % 2 === 0 && (
-                  <div className="relative overflow-hidden" style={{ height: 320 }}>
+                  <div className="relative overflow-hidden" style={{ height: "clamp(240px, 58vw, 320px)" }}>
                     <ImageWithFallback
                       src={set.img}
                       alt={set.name}
@@ -288,7 +288,7 @@ export function GiftCollectionPage() {
                 )}
 
                 {/* Content */}
-                <div className="flex flex-col justify-between p-8">
+                <div className="flex flex-col justify-between p-5 sm:p-8">
                   <div>
                     <p
                       style={{
@@ -307,7 +307,7 @@ export function GiftCollectionPage() {
                       style={{
                         fontFamily: "'Playfair Display', serif",
                         fontWeight: 400,
-                        fontSize: 32,
+                        fontSize: "clamp(28px, 7vw, 32px)",
                         color: "#3d3530",
                         lineHeight: "40px",
                         marginBottom: 12,
@@ -350,13 +350,13 @@ export function GiftCollectionPage() {
                   </div>
 
                   {/* Price + CTA */}
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-baseline gap-2">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                    <div className="flex flex-wrap items-baseline gap-2">
                       <span
                         style={{
                           fontFamily: "'Playfair Display', serif",
                           fontWeight: 400,
-                          fontSize: 36,
+                          fontSize: "clamp(30px, 8vw, 36px)",
                           color: "#3d3530",
                         }}
                       >
@@ -378,7 +378,7 @@ export function GiftCollectionPage() {
                     </div>
                     <button
                       onClick={() => handleAdd(set.product)}
-                      className="rounded-full px-7 py-3 transition-all hover:opacity-90 flex items-center gap-2"
+                      className="w-full justify-center rounded-full px-7 py-3 transition-all hover:opacity-90 flex items-center gap-2 sm:w-auto"
                       style={{
                         backgroundColor: addedId === set.id ? "#4e453e" : "#6b5948",
                         fontFamily: "'Inter', sans-serif",
@@ -413,7 +413,7 @@ export function GiftCollectionPage() {
 
                 {/* Image (right side for even items) */}
                 {i % 2 !== 0 && (
-                  <div className="relative overflow-hidden" style={{ height: 320 }}>
+                  <div className="relative overflow-hidden" style={{ height: "clamp(240px, 58vw, 320px)" }}>
                     <ImageWithFallback
                       src={set.img}
                       alt={set.name}
@@ -502,7 +502,7 @@ export function GiftCollectionPage() {
       </div>
 
       {/* ── Why gift Lumos Aura ──────────────────────────────────────────────── */}
-      <div className="max-w-[1100px] mx-auto w-full px-10 pb-20">
+      <div className="max-w-[1100px] mx-auto w-full px-5 sm:px-10 pb-20">
         <h2
           className="mb-8"
           style={{
@@ -515,7 +515,7 @@ export function GiftCollectionPage() {
         >
           Why Gift Lumos Aura?
         </h2>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {[
             {
               title: "Free Gift Wrapping",

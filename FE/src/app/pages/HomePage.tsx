@@ -173,27 +173,27 @@ export function HomePage() {
 
         <div className="absolute inset-0" style={{ background: heroOverlay }} />
 
-        <div className="relative z-10 flex min-h-[100svh] w-full items-center px-6 md:px-12 xl:px-20">
-          <div className={`flex max-w-[560px] flex-col ${textSide}`}>
+        <div className="relative z-10 flex min-h-[100svh] w-full items-center px-5 sm:px-6 md:px-12 xl:px-20">
+          <div className={`flex max-w-[560px] flex-col ${textSide} max-sm:items-start max-sm:text-left`}>
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.24em] text-[#e9cfaa]">
               {currentHero.eyebrow}
             </p>
-            <h1 className="mb-5 font-['Playfair_Display'] text-[56px] leading-none text-[#fff8f5] md:text-[88px]">
+            <h1 className="mb-5 font-['Playfair_Display'] text-[44px] leading-none text-[#fff8f5] sm:text-[56px] md:text-[88px]">
               {currentHero.title}
             </h1>
-            <p className="mb-9 max-w-[430px] text-[18px] leading-[30px] text-white/88">
+            <p className="mb-9 max-w-[430px] text-[16px] leading-[28px] text-white/88 sm:text-[18px] sm:leading-[30px]">
               {currentHero.copy}
             </p>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => navigate("shop")}
-                className="rounded-full bg-[#fff8f5] px-8 py-4 text-sm font-bold tracking-[0.06em] text-[#3d3530] shadow-[0_18px_30px_rgba(0,0,0,0.16)] transition-opacity hover:opacity-90"
+                className="rounded-full bg-[#fff8f5] px-5 py-3 text-xs font-bold tracking-[0.06em] text-[#3d3530] shadow-[0_18px_30px_rgba(0,0,0,0.16)] transition-opacity hover:opacity-90 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Shop All Candles
               </button>
               <button
                 onClick={() => navigate("product", currentHero.productId)}
-                className="rounded-full border border-white/45 px-8 py-4 text-sm font-bold tracking-[0.06em] text-[#fff8f5] transition-opacity hover:opacity-75"
+                className="rounded-full border border-white/45 px-5 py-3 text-xs font-bold tracking-[0.06em] text-[#fff8f5] transition-opacity hover:opacity-75 sm:px-8 sm:py-4 sm:text-sm"
               >
                 View This Scent
               </button>
@@ -665,8 +665,8 @@ export function HomePage() {
             margin: "0 auto",
             padding: "96px 24px",
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 64,
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
+            gap: "clamp(28px, 5vw, 64px)",
             alignItems: "center",
           }}
         >
@@ -896,7 +896,7 @@ export function HomePage() {
             borderRadius: 24,
             overflow: "hidden",
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
             minHeight: 520,
             boxShadow: "0 24px 60px rgba(40,30,24,0.14)",
           }}
@@ -905,7 +905,7 @@ export function HomePage() {
           <div
             style={{
               background: "linear-gradient(135deg, #3d3530 0%, #2a2018 100%)",
-              padding: "64px 56px",
+              padding: "clamp(32px, 6vw, 64px) clamp(24px, 5vw, 56px)",
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
@@ -1007,7 +1007,7 @@ export function HomePage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
               backgroundColor: "#4d4138",
             }}
           >

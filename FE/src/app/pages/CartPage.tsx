@@ -86,10 +86,10 @@ export function CartPage() {
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
-      <div className="max-w-[1280px] mx-auto w-full px-10 pt-32 pb-10">
+      <div className="max-w-[1280px] mx-auto w-full px-5 sm:px-8 lg:px-10 pt-28 sm:pt-32 pb-10">
         <h1
           className="mb-2"
-          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 56, color: "#3d3530", letterSpacing: "-0.5px", lineHeight: "64px" }}
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(40px, 8vw, 56px)", color: "#3d3530", letterSpacing: "-0.5px", lineHeight: 1.15 }}
         >
           Your Cart
         </h1>
@@ -97,12 +97,12 @@ export function CartPage() {
           {items.reduce((s, i) => s + i.quantity, 0)} items selected for your ritual.
         </p>
 
-        <div className="flex gap-10 items-start">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-10 lg:items-start">
           {/* Cart table */}
           <div className="flex-1 min-w-0">
             {/* Table header */}
             <div
-              className="grid grid-cols-[1fr_80px_140px_80px] gap-4 pb-3 mb-2"
+              className="hidden gap-4 pb-3 mb-2 md:grid md:grid-cols-[1fr_80px_140px_80px]"
               style={{ borderBottom: "1px solid #d1c4bb" }}
             >
               {["PRODUCT", "PRICE", "QUANTITY", "TOTAL"].map((h) => (
@@ -121,7 +121,7 @@ export function CartPage() {
               return (
               <div
                 key={product.id}
-                className="grid grid-cols-[1fr_80px_140px_80px] gap-4 py-6 items-center"
+                className="grid grid-cols-1 gap-4 py-6 md:grid-cols-[1fr_80px_140px_80px] md:items-center"
                 style={{ borderBottom: "1px solid rgba(209,196,187,0.4)" }}
               >
                 {/* Product */}
@@ -154,8 +154,10 @@ export function CartPage() {
                 </div>
 
                 {/* Price */}
+                <div className="flex items-center justify-between gap-4 md:block">
+                  <span className="md:hidden" style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: "1.1px", color: "#7f756d", textTransform: "uppercase" }}>Price</span>
                 {salePrice < product.price ? (
-                  <div className="flex flex-col items-start gap-1">
+                  <div className="flex flex-col items-end gap-1 md:items-start">
                     <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#9c8d82", textDecoration: "line-through" }}>
                       {formatPrice(product.price)}
                     </span>
@@ -168,27 +170,34 @@ export function CartPage() {
                     {formatPrice(product.price)}
                   </p>
                 )}
+                </div>
 
                 {/* Quantity */}
-                <div
-                  className="flex items-center gap-3 rounded-full px-4 py-2 w-fit"
-                  style={{ border: "1px solid #d1c4bb" }}
-                >
-                  <button onClick={() => updateQuantity(product.id, quantity - 1)} className="hover:opacity-60 transition-opacity">
-                    <Minus size={12} color="#6b5948" />
-                  </button>
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#6b5948", minWidth: 16, textAlign: "center" }}>
-                    {quantity}
-                  </span>
-                  <button onClick={() => updateQuantity(product.id, quantity + 1)} className="hover:opacity-60 transition-opacity">
-                    <Plus size={12} color="#6b5948" />
-                  </button>
+                <div className="flex items-center justify-between gap-4 md:block">
+                  <span className="md:hidden" style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: "1.1px", color: "#7f756d", textTransform: "uppercase" }}>Quantity</span>
+                  <div
+                    className="flex items-center gap-3 rounded-full px-4 py-2 w-fit"
+                    style={{ border: "1px solid #d1c4bb" }}
+                  >
+                    <button onClick={() => updateQuantity(product.id, quantity - 1)} className="hover:opacity-60 transition-opacity">
+                      <Minus size={12} color="#6b5948" />
+                    </button>
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#6b5948", minWidth: 16, textAlign: "center" }}>
+                      {quantity}
+                    </span>
+                    <button onClick={() => updateQuantity(product.id, quantity + 1)} className="hover:opacity-60 transition-opacity">
+                      <Plus size={12} color="#6b5948" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Total */}
-                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>
-                  {formatPrice(salePrice * quantity)}
-                </p>
+                <div className="flex items-center justify-between gap-4 md:block">
+                  <span className="md:hidden" style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: "1.1px", color: "#7f756d", textTransform: "uppercase" }}>Total</span>
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>
+                    {formatPrice(salePrice * quantity)}
+                  </p>
+                </div>
               </div>
               );
             })}
@@ -196,7 +205,7 @@ export function CartPage() {
 
           {/* Summary */}
           <div
-            className="w-80 shrink-0 rounded-2xl p-8 sticky top-24"
+            className="w-full rounded-2xl p-6 sm:p-8 lg:sticky lg:top-24 lg:w-80 lg:shrink-0"
             style={{ backgroundColor: "#f5ece7" }}
           >
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 28, color: "#3d3530", marginBottom: 20 }}>
@@ -328,7 +337,7 @@ export function CartPage() {
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 36, color: "#3d3530", marginBottom: 24 }}>
               Complete your ritual
             </h2>
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
               {ritualSuggestions.map((product) => (
                 <div
                   key={product.id}

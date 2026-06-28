@@ -47,17 +47,17 @@ export function Navbar() {
         boxShadow: isHomeTop ? "none" : "0 10px 30px rgba(109,91,74,0.08)",
       }}
     >
-      <div className="max-w-[1440px] mx-auto px-10 h-20 flex items-center justify-between">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 h-16 sm:h-20 flex items-center justify-between">
         {/* Left nav links */}
-        <div className="flex gap-8 items-center">
+        <div className="flex gap-3 sm:gap-5 lg:gap-8 items-center">
           <button
             onClick={() => navigate("shop")}
             className="transition-all"
             style={{
               fontFamily: "'Inter', sans-serif",
               fontWeight: 600,
-              fontSize: 14,
-              letterSpacing: "0.7px",
+              fontSize: 13,
+              letterSpacing: "0.3px",
               color: currentPage === "shop" ? activeColor : navTextColor,
               borderBottom: currentPage === "shop" ? `2px solid ${activeBorder}` : "2px solid transparent",
               paddingBottom: 2,
@@ -71,23 +71,24 @@ export function Navbar() {
             style={{
               fontFamily: "'Inter', sans-serif",
               fontWeight: 600,
-              fontSize: 14,
-              letterSpacing: "0.7px",
+              fontSize: 13,
+              letterSpacing: "0.3px",
               color: currentPage === "gift" ? activeColor : navTextColor,
               borderBottom: currentPage === "gift" ? `2px solid ${activeBorder}` : "2px solid transparent",
               paddingBottom: 2,
               textShadow: isHomeTop ? "0 1px 16px rgba(0,0,0,0.28)" : "none",
             }}
           >
-            Gift Collection
+            <span className="hidden sm:inline">Gift Collection</span>
+            <span className="sm:hidden">Gift</span>
           </button>
           <button
             onClick={() => navigate("about")}
             style={{
               fontFamily: "'Inter', sans-serif",
               fontWeight: 600,
-              fontSize: 14,
-              letterSpacing: "0.7px",
+              fontSize: 13,
+              letterSpacing: "0.3px",
               color: currentPage === "about" ? activeColor : navTextColor,
               borderBottom: currentPage === "about" ? `2px solid ${activeBorder}` : "2px solid transparent",
               paddingBottom: 2,
@@ -105,7 +106,7 @@ export function Navbar() {
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
-            fontSize: 40,
+            fontSize: "clamp(26px, 5vw, 40px)",
             color: foregroundColor,
             letterSpacing: "-2px",
             lineHeight: 1,
@@ -116,13 +117,13 @@ export function Navbar() {
         </button>
 
         {/* Right icons */}
-        <div className="flex gap-5 items-center">
+        <div className="flex gap-3 sm:gap-5 items-center">
           {/* Expandable search */}
           <form
             onSubmit={handleSearch}
             className="flex items-center transition-all duration-300 overflow-hidden rounded-full"
             style={{
-              width: searchOpen ? 200 : 28,
+              width: searchOpen ? "min(45vw, 200px)" : 28,
               border: searchOpen ? "1px solid #d1c4bb" : "1px solid transparent",
               backgroundColor: searchOpen ? "white" : "transparent",
               paddingLeft: searchOpen ? 10 : 0,

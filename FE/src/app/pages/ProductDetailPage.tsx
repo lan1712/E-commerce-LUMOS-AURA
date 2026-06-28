@@ -82,12 +82,12 @@ export function ProductDetailPage({ productId }: Props) {
       <div className="max-w-[1440px] mx-auto w-full px-5 md:px-10 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           <div className="flex flex-col-reverse sm:flex-row gap-4">
-            <div className="flex sm:flex-col gap-3 sm:w-20 shrink-0 overflow-x-auto">
+            <div className="flex sm:flex-col gap-3 sm:w-20 shrink-0 overflow-x-auto pb-1 sm:pb-0">
               {images.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className="rounded-xl overflow-hidden h-20 w-20 shrink-0"
+                  className="rounded-xl overflow-hidden h-16 w-16 shrink-0 sm:h-20 sm:w-20"
                   style={{ border: selectedImage === index ? "2px solid #6b5948" : "2px solid transparent", backgroundColor: "#fff8f5" }}
                 >
                   <ProductImage product={product} index={index} className="w-full h-full object-contain" />
@@ -96,7 +96,7 @@ export function ProductDetailPage({ productId }: Props) {
             </div>
             <div
               className="flex-1 rounded-2xl overflow-hidden flex items-center justify-center"
-              style={{ backgroundColor: "#fff8f5", minHeight: 420, height: "min(580px, 70vw)", boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}
+              style={{ backgroundColor: "#fff8f5", minHeight: "min(420px, 90vw)", height: "min(580px, 70vw)", boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}
             >
               <ProductImage product={product} index={selectedImage} className="h-[90%] w-[90%] object-contain" />
             </div>
@@ -119,7 +119,7 @@ export function ProductDetailPage({ productId }: Props) {
               <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#9b7660", textTransform: "uppercase", marginBottom: 8 }}>
                 {product.category}
               </p>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 48, color: "#6b5948", lineHeight: "56px" }}>
+              <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(36px, 9vw, 48px)", color: "#6b5948", lineHeight: 1.16 }}>
                 {product.name}
               </h1>
             </div>
@@ -156,7 +156,7 @@ export function ProductDetailPage({ productId }: Props) {
               </div>
             )}
 
-            <div className="flex gap-8">
+            <div className="flex flex-wrap gap-6 sm:gap-8">
               {!isAccessory && product.burnTime && (
                 <div>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase" }}>Burn Time</p>
@@ -173,7 +173,7 @@ export function ProductDetailPage({ productId }: Props) {
               <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#675a4e", lineHeight: "22px" }}>{product.details}</p>
             </div>
 
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <div className="flex items-center gap-3 rounded-full px-4 py-2" style={{ border: "1px solid #d1c4bb" }}>
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="hover:opacity-60 transition-opacity" title="Decrease quantity">
                   <Minus size={14} color="#6b5948" />
@@ -185,7 +185,7 @@ export function ProductDetailPage({ productId }: Props) {
               </div>
               <button
                 onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 rounded-full py-4 transition-all hover:opacity-90"
+                className="w-full flex-1 flex items-center justify-center gap-2 rounded-full py-4 transition-all hover:opacity-90"
                 style={{ backgroundColor: added ? "#4e453e" : "#6b5948", fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "0.7px", color: "white" }}
               >
                 <ShoppingBag size={16} />
@@ -197,11 +197,11 @@ export function ProductDetailPage({ productId }: Props) {
       </div>
 
       {!isAccessory && (
-        <section className="w-full mt-20 py-24 relative overflow-hidden" style={{ backgroundColor: "#f5ece7" }}>
+        <section className="w-full mt-12 py-16 md:mt-20 md:py-24 relative overflow-hidden" style={{ backgroundColor: "#f5ece7" }}>
           <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: `url(${imgRitualBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
           <div className="max-w-[1440px] mx-auto px-5 md:px-10 relative z-10 flex flex-col items-center text-center">
             <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "1.2px", color: "#735a36", textTransform: "uppercase", marginBottom: 16 }}>RITUAL OF LIGHT</p>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 48, color: "#6b5948", lineHeight: "56px", marginBottom: 16 }}>The Art of Burning</h2>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(34px, 8vw, 48px)", color: "#6b5948", lineHeight: 1.16, marginBottom: 16 }}>The Art of Burning</h2>
             <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, color: "#4e453e", lineHeight: "28px", maxWidth: 560 }}>
               For the perfect first burn, allow the wax to melt across the entire surface. Trim your wick to 5mm before each use.
             </p>
@@ -211,8 +211,8 @@ export function ProductDetailPage({ productId }: Props) {
 
       {related.length > 0 && (
         <section className="max-w-[1440px] mx-auto w-full px-5 md:px-10 py-20">
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 40, color: "#6b5948", lineHeight: "48px", marginBottom: 40 }}>You May Also Like</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(32px, 7vw, 40px)", color: "#6b5948", lineHeight: 1.2, marginBottom: 40 }}>You May Also Like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
             {related.map((item) => <ProductCard key={item.id} product={item} />)}
           </div>
         </section>

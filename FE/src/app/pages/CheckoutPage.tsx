@@ -184,7 +184,7 @@ export function CheckoutPage() {
           <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "#6b5948" }}>
             <Check size={28} color="white" />
           </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 48, color: "#6b5948", lineHeight: "56px" }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(38px, 10vw, 48px)", color: "#6b5948", lineHeight: 1.16 }}>
             Order Confirmed
           </h1>
           <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 16, color: "#675a4e", lineHeight: "26px" }}>
@@ -235,7 +235,7 @@ export function CheckoutPage() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-8 py-12 flex gap-12 items-start">
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-8 py-8 sm:py-12 flex flex-col gap-8 lg:flex-row lg:gap-12 lg:items-start">
         {/* Left: accordion steps */}
         <div className="flex-1 min-w-0">
           {/* Step 1: Contact */}
@@ -273,13 +273,13 @@ export function CheckoutPage() {
             onEdit={() => setStep("shipping")}
           >
             <div className="flex flex-col gap-5">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <InputField placeholder="First Name" value={shipping.firstName} onChange={(v) => setShipping({ ...shipping, firstName: v })} />
                 <InputField placeholder="Last Name" value={shipping.lastName} onChange={(v) => setShipping({ ...shipping, lastName: v })} />
               </div>
               <InputField placeholder="Address" value={shipping.address} onChange={(v) => setShipping({ ...shipping, address: v })} />
               <InputField placeholder="Apartment, suite, etc. (optional)" value={shipping.apt} onChange={(v) => setShipping({ ...shipping, apt: v })} />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <InputField placeholder="City" value={shipping.city} onChange={(v) => setShipping({ ...shipping, city: v })} />
                 <div className="flex flex-col gap-1">
                   <select
@@ -364,7 +364,7 @@ export function CheckoutPage() {
         </div>
 
         {/* Right: Order summary */}
-        <div className="w-80 shrink-0">
+        <div className="w-full lg:w-80 lg:shrink-0">
           <h3
             style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "0.96px", color: "#3d3530", textTransform: "uppercase", marginBottom: 20 }}
           >
