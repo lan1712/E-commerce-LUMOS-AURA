@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { Product } from "./data";
+import { getOpeningSalePrice, type Product } from "./data";
 import { auth as authApi, setToken, clearToken } from "./api";
 
 // ── Cart ──────────────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const total = items.reduce((sum, i) => sum + getOpeningSalePrice(i.product.price) * i.quantity, 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (

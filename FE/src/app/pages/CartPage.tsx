@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Minus, Plus, X, ShoppingBag, Check } from "lucide-react";
 import { useCart, useNav } from "../context";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { Footer } from "../components/Footer";
 import { promoApi, productsApi } from "../api";
 
@@ -47,6 +47,7 @@ export function CartPage() {
 
   const shippingCost = total >= 500000 || (appliedPromo?.code === "FREESHIP") ? 0 : 30000;
   const finalTotal = total - discount + shippingCost;
+  const saleActive = items.some(({ product }) => getOpeningSalePrice(product.price) < product.price);
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   useEffect(() => {
@@ -115,7 +116,9 @@ export function CartPage() {
             </div>
 
             {/* Items */}
-            {items.map(({ product, quantity }) => (
+            {items.map(({ product, quantity }) => {
+              const salePrice = getOpeningSalePrice(product.price);
+              return (
               <div
                 key={product.id}
                 className="grid grid-cols-[1fr_80px_140px_80px] gap-4 py-6 items-center"
@@ -151,9 +154,20 @@ export function CartPage() {
                 </div>
 
                 {/* Price */}
-                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 15, color: "#675a4e" }}>
-                  {formatPrice(product.price)}
-                </p>
+                {salePrice < product.price ? (
+                  <div className="flex flex-col items-start gap-1">
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#9c8d82", textDecoration: "line-through" }}>
+                      {formatPrice(product.price)}
+                    </span>
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, color: "#5f4635" }}>
+                      {formatPrice(salePrice)}
+                    </span>
+                  </div>
+                ) : (
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 15, color: "#675a4e" }}>
+                    {formatPrice(product.price)}
+                  </p>
+                )}
 
                 {/* Quantity */}
                 <div
@@ -173,10 +187,11 @@ export function CartPage() {
 
                 {/* Total */}
                 <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>
-                  {formatPrice(product.price * quantity)}
+                  {formatPrice(salePrice * quantity)}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Summary */}
@@ -193,6 +208,12 @@ export function CartPage() {
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Subtotal</span>
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>{formatPrice(total)}</span>
               </div>
+              {saleActive && (
+              <div className="flex justify-between">
+                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#6b5948" }}>{OPENING_DISCOUNT_LABEL}</span>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#6b5948" }}>Đã áp dụng</span>
+              </div>
+              )}
               <div className="flex justify-between">
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Shipping</span>
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 14, color: shippingCost === 0 ? "#735a36" : "#675a4e" }}>
@@ -323,7 +344,7 @@ export function CartPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, color: "#3d3530", lineHeight: "18px" }}>{product.name}</p>
-                    <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>{formatPrice(product.price)}</p>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>{formatPrice(getOpeningSalePrice(product.price))}</p>
                     <button
                       className="mt-1 text-xs hover:opacity-70 transition-opacity"
                       style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 11, color: "#735a36", letterSpacing: "0.5px" }}

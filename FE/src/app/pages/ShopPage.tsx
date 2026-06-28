@@ -5,7 +5,7 @@ import shopBanner from "../../assets/shop-banner.png";
 import { productsApi } from "../api";
 import { Footer } from "../components/Footer";
 import { ProductImage } from "../components/ProductImage";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, getOpeningSaleStatus, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { useCart, useNav } from "../context";
 
 const categoryLabels: Record<string, string> = {
@@ -84,6 +84,8 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
 function ProductGridCard({ product, badge }: { product: Product; badge?: string }) {
   const { addToCart } = useCart();
   const { navigate } = useNav();
+  const salePrice = getOpeningSalePrice(product.price);
+  const onSale = salePrice < product.price;
 
   return (
     <article
@@ -116,9 +118,26 @@ function ProductGridCard({ product, badge }: { product: Product; badge?: string 
         <p className="mt-1 truncate" style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#756a61" }}>
           {product.scentNotes === "-" ? product.description : product.scentNotes}
         </p>
-        <p className="mt-3" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13, color: "#3d332c" }}>
-          {formatPrice(product.price)}
-        </p>
+        {onSale ? (
+          <div className="mt-3 flex flex-wrap items-baseline gap-2">
+            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#9b8d82", textDecoration: "line-through" }}>
+              {formatPrice(product.price)}
+            </span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: 15, color: "#5f4635" }}>
+              {formatPrice(salePrice)}
+            </span>
+            <span
+              className="rounded-full px-2 py-0.5"
+              style={{ backgroundColor: "#f3ebe6", fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: "0.5px", color: "#735a36" }}
+            >
+              {OPENING_DISCOUNT_LABEL}
+            </span>
+          </div>
+        ) : (
+          <p className="mt-3" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13, color: "#3d332c" }}>
+            {formatPrice(product.price)}
+          </p>
+        )}
         <button
           className="mt-3 inline-flex h-9 items-center gap-1.5 rounded px-4 transition-opacity hover:opacity-90"
           style={{ backgroundColor: "#6f5847", fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 12, color: "white" }}
@@ -145,12 +164,18 @@ export function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saleStatus, setSaleStatus] = useState(() => getOpeningSaleStatus());
 
   useEffect(() => {
     productsApi.list()
       .then((data: Product[]) => setProducts(data))
       .catch((requestError: Error) => setError(requestError.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setSaleStatus(getOpeningSaleStatus()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const shopProducts = useMemo(() => products.filter((product) => !isGiftProduct(product)), [products]);
@@ -188,12 +213,12 @@ export function ShopPage() {
         if (!selectedMoods.some((mood) => text.includes(mood.toLowerCase()))) return false;
       }
       if (selectedSizes.length && !selectedSizes.some((size) => matchesSize(product, size))) return false;
-      return product.price <= maxPrice;
+      return getOpeningSalePrice(product.price) <= maxPrice;
     });
 
     return [...list].sort((a, b) => {
-      if (sortBy === "priceLow") return a.price - b.price;
-      if (sortBy === "priceHigh") return b.price - a.price;
+      if (sortBy === "priceLow") return getOpeningSalePrice(a.price) - getOpeningSalePrice(b.price);
+      if (sortBy === "priceHigh") return getOpeningSalePrice(b.price) - getOpeningSalePrice(a.price);
       if (sortBy === "name") return a.name.localeCompare(b.name);
       return 0;
     });
@@ -210,6 +235,10 @@ export function ShopPage() {
     setMaxPrice(600000);
     setSortBy("featured");
   };
+
+  const remainingDays = Math.floor(saleStatus.remainingMs / (24 * 60 * 60 * 1000));
+  const remainingHours = Math.floor((saleStatus.remainingMs / (60 * 60 * 1000)) % 24);
+  const remainingMinutes = Math.floor((saleStatus.remainingMs / (60 * 1000)) % 60);
 
   return (
     <div className="flex w-full flex-col" style={{ backgroundColor: "#fff8f5" }}>
@@ -322,6 +351,38 @@ export function ShopPage() {
             </aside>
 
             <section className="min-w-0 px-6 py-7 md:px-8">
+              {saleStatus.active && (
+                <div
+                  className="mb-7 flex flex-col gap-3 rounded-md border border-[#eadfd8] bg-[#fff8f5] px-5 py-4 md:flex-row md:items-center md:justify-between"
+                  style={{ boxShadow: "0 12px 24px rgba(105, 86, 68, 0.05)" }}
+                >
+                  <div>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: "1.5px", color: "#735a36", textTransform: "uppercase" }}>
+                      {OPENING_DISCOUNT_LABEL}
+                    </p>
+                    <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 24, color: "#3d3530", lineHeight: "32px" }}>
+                      Ưu đãi khai trương chỉ diễn ra trong 15 ngày
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {[
+                      { label: "Ngày", value: remainingDays },
+                      { label: "Giờ", value: remainingHours },
+                      { label: "Phút", value: remainingMinutes },
+                    ].map((item) => (
+                      <div key={item.label} className="min-w-16 rounded bg-white px-3 py-2 text-center">
+                        <span className="block" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: 18, color: "#5f4635" }}>
+                          {String(item.value).padStart(2, "0")}
+                        </span>
+                        <span className="block" style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, letterSpacing: "0.7px", color: "#897d73", textTransform: "uppercase" }}>
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#5c5149" }}>
                   {loading ? "Loading..." : `${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}

@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { useCart, useNav } from "../context";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { ProductImage } from "./ProductImage";
 
 interface ProductCardProps {
@@ -10,6 +10,8 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { navigate } = useNav();
+  const salePrice = getOpeningSalePrice(product.price);
+  const onSale = salePrice < product.price;
 
   return (
     <div className="flex flex-col gap-4 group cursor-pointer">
@@ -73,18 +75,28 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           ))}
         </div>
-        <p
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: 400,
-            fontSize: 16,
-            color: "#675a4e",
-            textAlign: "center",
-            marginTop: 4,
-          }}
-        >
-          {formatPrice(product.price)}
-        </p>
+        {onSale ? (
+          <div className="mt-1 flex flex-col items-center gap-1">
+            <span
+              className="rounded-full px-2.5 py-0.5"
+              style={{ backgroundColor: "#efe6e2", fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: "0.7px", color: "#735a36" }}
+            >
+              {OPENING_DISCOUNT_LABEL}
+            </span>
+            <div className="flex items-baseline justify-center gap-2">
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#9c8d82", textDecoration: "line-through" }}>
+                {formatPrice(product.price)}
+              </span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: "#5f4635" }}>
+                {formatPrice(salePrice)}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 16, color: "#675a4e", textAlign: "center", marginTop: 4 }}>
+            {formatPrice(product.price)}
+          </p>
+        )}
       </div>
     </div>
   );

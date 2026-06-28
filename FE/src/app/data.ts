@@ -69,3 +69,29 @@ export function formatPrice(value: number): string {
     maximumFractionDigits: 0,
   }).format(value);
 }
+
+export const OPENING_DISCOUNT_RATE = 0.3;
+export const OPENING_DISCOUNT_LABEL = "Khai trương -30%";
+export const OPENING_SALE_DAYS = 15;
+export const OPENING_SALE_START_DATE =
+  import.meta.env.VITE_OPENING_SALE_START_DATE ?? "2026-06-28T22:47:54+07:00";
+
+export function getOpeningSaleStatus(now = new Date()) {
+  const start = new Date(OPENING_SALE_START_DATE);
+  const end = new Date(start.getTime() + OPENING_SALE_DAYS * 24 * 60 * 60 * 1000);
+  const active = Number.isFinite(start.getTime()) && now >= start && now < end;
+  return {
+    active,
+    start,
+    end,
+    remainingMs: active ? end.getTime() - now.getTime() : 0,
+  };
+}
+
+export function isOpeningSaleActive(now = new Date()): boolean {
+  return getOpeningSaleStatus(now).active;
+}
+
+export function getOpeningSalePrice(value: number): number {
+  return isOpeningSaleActive() ? Math.round(value * (1 - OPENING_DISCOUNT_RATE)) : value;
+}

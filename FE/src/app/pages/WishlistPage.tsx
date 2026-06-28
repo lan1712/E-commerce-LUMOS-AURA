@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Heart, X } from "lucide-react";
 import { useNav, useCart, useAuth } from "../context";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, type Product } from "../data";
 import { Footer } from "../components/Footer";
 import { wishlistApi, productsApi } from "../api";
 
@@ -210,7 +210,7 @@ export function WishlistPage() {
                         color: "#3d3530",
                       }}
                     >
-                      {formatPrice(product.price)}
+                      {formatPrice(getOpeningSalePrice(product.price))}
                     </span>
                     <button
                       onClick={() => handleAdd(product)}

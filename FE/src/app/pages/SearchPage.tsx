@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useNav, useCart } from "../context";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, type Product } from "../data";
 import { Footer } from "../components/Footer";
 import { productsApi } from "../api";
 
@@ -274,7 +274,7 @@ function ProductResult({
               color: "#3d3530",
             }}
           >
-            {formatPrice(product.price)}
+            {formatPrice(getOpeningSalePrice(product.price))}
           </span>
           <button
             onClick={onAdd}

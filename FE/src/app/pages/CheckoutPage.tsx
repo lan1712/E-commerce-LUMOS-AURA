@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useCart, useNav, useAuth } from "../context";
 import { ordersApi } from "../api";
-import { formatPrice } from "../data";
+import { formatPrice, getOpeningSalePrice, OPENING_DISCOUNT_LABEL } from "../data";
 
 type Step = "contact" | "shipping" | "payment" | "confirmed";
 
@@ -145,6 +145,7 @@ export function CheckoutPage() {
 
   const shippingCost = total >= 500000 ? 0 : 30000;
   const finalTotal = total + shippingCost;
+  const saleActive = items.some(({ product }) => getOpeningSalePrice(product.price) < product.price);
 
   const handlePlaceOrder = async () => {
     setPlacing(true);
@@ -372,7 +373,9 @@ export function CheckoutPage() {
 
           {/* Items */}
           <div className="flex flex-col gap-4 mb-6">
-            {items.map(({ product, quantity }) => (
+            {items.map(({ product, quantity }) => {
+              const salePrice = getOpeningSalePrice(product.price);
+              return (
               <div key={product.id} className="flex gap-3 items-center">
                 <div
                   className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0"
@@ -392,9 +395,17 @@ export function CheckoutPage() {
                   </p>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>{product.size}</p>
                 </div>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>{formatPrice(product.price * quantity)}</p>
+                {salePrice < product.price ? (
+                  <div className="flex flex-col items-end">
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#9c8d82", textDecoration: "line-through" }}>{formatPrice(product.price * quantity)}</span>
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>{formatPrice(salePrice * quantity)}</span>
+                  </div>
+                ) : (
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#3d3530" }}>{formatPrice(product.price * quantity)}</p>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Promo */}
@@ -421,6 +432,12 @@ export function CheckoutPage() {
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Subtotal</span>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 14, color: "#3d3530" }}>{formatPrice(total)}</span>
             </div>
+            {saleActive && (
+            <div className="flex justify-between">
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#6b5948" }}>{OPENING_DISCOUNT_LABEL}</span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, color: "#6b5948" }}>Đã áp dụng</span>
+            </div>
+            )}
             <div className="flex justify-between">
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Shipping</span>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#7f756d" }}>

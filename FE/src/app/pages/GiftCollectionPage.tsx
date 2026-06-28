@@ -4,7 +4,7 @@ import { useCart } from "../context";
 import { Footer } from "../components/Footer";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import giftBanner from "../../assets/gift-banner.png";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, type Product } from "../data";
 import { Check } from "lucide-react";
 import { productsApi } from "../api";
 
@@ -83,6 +83,7 @@ export function GiftCollectionPage() {
 
   const giftProducts = useMemo(() => allProducts.filter(isGiftProduct), [allProducts]);
   const displayGiftSets = useMemo(() => giftProducts.map((product, index) => {
+    const salePrice = getOpeningSalePrice(product.price);
     const includes = [product.size, product.burnTime, product.scentNotes]
       .filter((item): item is string => Boolean(item && item !== "-"))
       .slice(0, 3);
@@ -93,8 +94,8 @@ export function GiftCollectionPage() {
       name: product.name,
       tagline: product.tags[0] ?? "Curated gift collection",
       description: product.description,
-      priceLabel: formatPrice(product.price),
-      originalPriceLabel: null,
+      priceLabel: formatPrice(salePrice),
+      originalPriceLabel: salePrice < product.price ? formatPrice(product.price) : null,
       badge: product.tags[1] ?? (index === 0 ? "Best Seller" : "Gift Set"),
       badgeColor: index === 0 ? "#6b5948" : "#735a36",
       includes: includes.length > 0 ? includes : ["Signature gift packaging", "Ready to give", "Lumos Aura selected set"],

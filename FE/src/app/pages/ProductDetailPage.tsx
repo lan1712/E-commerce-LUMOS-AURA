@@ -5,7 +5,7 @@ import { productsApi } from "../api";
 import { Footer } from "../components/Footer";
 import { ProductCard } from "../components/ProductCard";
 import { ProductImage } from "../components/ProductImage";
-import { formatPrice, getProductImages, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, getProductImages, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { useCart, useNav } from "../context";
 
 interface Props {
@@ -58,6 +58,8 @@ export function ProductDetailPage({ productId }: Props) {
 
   const images = getProductImages(product);
   const isAccessory = product.category === "Accessories";
+  const salePrice = getOpeningSalePrice(product.price);
+  const onSale = salePrice < product.price;
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -122,9 +124,26 @@ export function ProductDetailPage({ productId }: Props) {
               </h1>
             </div>
 
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 28, color: "#675a4e", lineHeight: "40px" }}>
-              {formatPrice(product.price)}
-            </p>
+            {onSale ? (
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 20, color: "#9c8d82", lineHeight: "32px", textDecoration: "line-through" }}>
+                  {formatPrice(product.price)}
+                </span>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 30, color: "#5f4635", lineHeight: "40px" }}>
+                  {formatPrice(salePrice)}
+                </span>
+                <span
+                  className="rounded-full px-3 py-1"
+                  style={{ backgroundColor: "#efe6e2", fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: "0.7px", color: "#735a36" }}
+                >
+                  {OPENING_DISCOUNT_LABEL}
+                </span>
+              </div>
+            ) : (
+              <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 28, color: "#675a4e", lineHeight: "40px" }}>
+                {formatPrice(product.price)}
+              </p>
+            )}
 
             <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 16, color: "#4e453e", lineHeight: "26px" }}>
               {product.description}

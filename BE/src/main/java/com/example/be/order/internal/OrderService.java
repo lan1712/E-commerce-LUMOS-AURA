@@ -15,6 +15,7 @@ import com.example.be.promo.domain.DiscountType;
 import com.example.be.promo.domain.PromoCode;
 import com.example.be.promo.internal.PromoService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import com.example.be.order.internal.momo.MomoService;
 import java.util.Map;
@@ -37,6 +41,11 @@ import java.util.stream.Collectors;
  */
 @Service
 public class OrderService {
+    private static final BigDecimal OPENING_SALE_MULTIPLIER = new BigDecimal("0.70");
+    private static final long OPENING_SALE_DAYS = 15;
+
+    @Value("${opening-sale.start-date:2026-06-28T22:47:54+07:00}")
+    private String openingSaleStartDate;
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -103,9 +112,10 @@ public class OrderService {
             item.setOrder(order);
             item.setProduct(product);
             item.setProductName(product.getName());
-            item.setProductPrice(product.getPrice());
+            BigDecimal currentPrice = getCurrentProductPrice(product);
+            item.setProductPrice(currentPrice);
             item.setQuantity(itemReq.quantity());
-            BigDecimal lineTotal = product.getPrice()
+            BigDecimal lineTotal = currentPrice
                     .multiply(BigDecimal.valueOf(itemReq.quantity()))
                     .setScale(2, RoundingMode.HALF_UP);
             item.setLineTotal(lineTotal);
@@ -226,6 +236,26 @@ public class OrderService {
             return generateOrderNumber();
         }
         return candidate;
+    }
+
+    private BigDecimal getCurrentProductPrice(Product product) {
+        if (!isOpeningSaleActive()) {
+            return product.getPrice();
+        }
+        return product.getPrice()
+                .multiply(OPENING_SALE_MULTIPLIER)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private boolean isOpeningSaleActive() {
+        try {
+            Instant start = OffsetDateTime.parse(openingSaleStartDate).toInstant();
+            Instant end = start.plus(Duration.ofDays(OPENING_SALE_DAYS));
+            Instant now = Instant.now();
+            return !now.isBefore(start) && now.isBefore(end);
+        } catch (RuntimeException ignored) {
+            return false;
+        }
     }
 
     private OrderDTO toDTO(Order o) {

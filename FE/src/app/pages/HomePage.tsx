@@ -10,7 +10,7 @@ import { CustomerFeedback } from "../components/CustomerFeedback";
 import { Footer } from "../components/Footer";
 import { ProductImage } from "../components/ProductImage";
 import { useNav } from "../context";
-import { formatPrice, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, type Product } from "../data";
 
 const heroSlides = [
   {
@@ -624,7 +624,7 @@ export function HomePage() {
                       margin: 0,
                     }}
                   >
-                    {formatPrice(product.price)}
+                    {formatPrice(getOpeningSalePrice(product.price))}
                   </p>
                   <span style={{ display: "flex", gap: 2 }}>
                     {[...Array(5)].map((_, si) => (
