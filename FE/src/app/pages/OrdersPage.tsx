@@ -3,6 +3,7 @@ import { useNav, useAuth } from "../context";
 import { Footer } from "../components/Footer";
 import { Check, ShoppingBag } from "lucide-react";
 import { ordersApi } from "../api";
+import { formatPrice } from "../data";
 
 const trackingSteps = ["Pending", "Confirmed", "Processing", "Shipping", "Delivered"];
 
@@ -156,7 +157,7 @@ export function OrdersPage() {
                     {order.date}
                   </p>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#7f756d", marginTop: 2 }}>
-                    {order.items.length} {order.items.length === 1 ? "item" : "items"} · ${order.total.toFixed(0)}
+                    {order.items.length} {order.items.length === 1 ? "item" : "items"} · {formatPrice(order.total)}
                   </p>
                   <div className="flex gap-2 mt-3">
                     {order.items.slice(0, 2).map((item, i) => (
@@ -194,7 +195,7 @@ export function OrdersPage() {
                         Total Amount
                       </p>
                       <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 36, color: "#3d3530", lineHeight: "44px", textAlign: "right" }}>
-                        ${selectedOrder.total.toFixed(2)}
+                        {formatPrice(selectedOrder.total)}
                       </p>
                     </div>
                   </div>
@@ -240,7 +241,7 @@ export function OrdersPage() {
                         </div>
                         <div className="text-right">
                           <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>Qty {item.qty}</p>
-                          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>${(item.price * item.qty).toFixed(2)}</p>
+                          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>{formatPrice(item.price * item.qty)}</p>
                         </div>
                       </div>
                     ))}

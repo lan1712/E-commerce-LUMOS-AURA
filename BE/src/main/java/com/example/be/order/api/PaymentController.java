@@ -3,6 +3,7 @@ package com.example.be.order.api;
 import com.example.be.order.domain.Order;
 import com.example.be.order.domain.OrderRepository;
 import com.example.be.order.internal.vnpay.VNPayConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +22,16 @@ public class PaymentController {
 
     private final OrderRepository orderRepository;
     private final VNPayConfig vnPayConfig;
+    private final String frontendUrl;
 
-    public PaymentController(OrderRepository orderRepository, VNPayConfig vnPayConfig) {
+    public PaymentController(
+            OrderRepository orderRepository,
+            VNPayConfig vnPayConfig,
+            @Value("${frontend.url:http://localhost:5173}") String frontendUrl
+    ) {
         this.orderRepository = orderRepository;
         this.vnPayConfig = vnPayConfig;
+        this.frontendUrl = frontendUrl.replaceAll("/+$", "");
     }
 
     @GetMapping("/return")
@@ -55,7 +62,7 @@ public class PaymentController {
         System.out.println("Calculated Hash: " + signValue);
         System.out.println("Raw fields map: " + fields);
         
-        String frontendUrl = "http://localhost:5173/checkout/vnpay-return";
+        String vnpayReturnUrl = frontendUrl + "/checkout/vnpay-return";
         if (signValue.equals(vnp_SecureHash)) {
             String rawTxnRef = request.getParameter("vnp_TxnRef");
             String orderNumber = null;
@@ -70,21 +77,21 @@ public class PaymentController {
                 if (order != null && "PENDING".equals(order.getStatus())) {
                     order.setStatus("PAID");
                     order.setTransactionId(request.getParameter("vnp_TransactionNo"));
-                    orderRepository.save(order);
+                        orderRepository.save(order);
                 }
                 return ResponseEntity.status(HttpStatus.FOUND)
-                        .location(URI.create(frontendUrl + "?status=success&orderNumber=" + orderNumber))
+                        .location(URI.create(vnpayReturnUrl + "?status=success&orderNumber=" + orderNumber))
                         .build();
             } else {
                 // Failed/Cancelled but we keep it PENDING for 5 mins retry window
                 return ResponseEntity.status(HttpStatus.FOUND)
-                        .location(URI.create(frontendUrl + "?status=failed&orderNumber=" + orderNumber))
+                        .location(URI.create(vnpayReturnUrl + "?status=failed&orderNumber=" + orderNumber))
                         .build();
             }
         } else {
             // Invalid signature
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendUrl + "?status=invalid"))
+                    .location(URI.create(vnpayReturnUrl + "?status=invalid"))
                     .build();
         }
     }

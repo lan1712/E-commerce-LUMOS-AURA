@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -22,9 +23,9 @@ public class MomoService {
 
     public String createOrder(String orderNumber, BigDecimal amount, String orderInfo) {
         RestTemplate restTemplate = new RestTemplate();
-        
-        // Amount must be a whole number for MoMo. Assuming our base currency is USD, we convert to VND (1 USD ~ 25,000 VND)
-        long amountValue = amount.multiply(BigDecimal.valueOf(25000)).longValue();
+
+        // Prices are stored in VND. MoMo expects a whole VND amount.
+        long amountValue = amount.setScale(0, RoundingMode.HALF_UP).longValueExact();
         
         String requestId = UUID.randomUUID().toString();
         // Since we want to use the same order ID when retrying, we might need a unique orderId for MoMo

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -24,8 +25,10 @@ public class VNPayService {
     public String createOrder(String orderNumber, BigDecimal total, String orderInfo, HttpServletRequest request) {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        // Convert total (USD) to VND (assuming 1 USD = 25,000 VND) and then multiply by 100 for VNPay format
-        long amount = total.multiply(new BigDecimal(25000)).multiply(new BigDecimal(100)).longValue();
+        // Prices are stored in VND. VNPay expects amount in VND multiplied by 100.
+        long amount = total.setScale(0, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .longValueExact();
         String bankCode = "";
 
         // Append timestamp to ensure uniqueness for retries

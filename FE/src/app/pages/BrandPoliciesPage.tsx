@@ -183,18 +183,18 @@ export function BrandPoliciesPage() {
           {/* Shipping Information */}
           <PolicySection id="shipping" title="Shipping Information">
             <BodyText>
-              All orders are carefully prepared and dispatched from our atelier. We offer complimentary standard shipping on all domestic orders above $100.
+              All orders are carefully prepared and dispatched from our atelier. We offer complimentary standard shipping on all domestic orders above 500.000đ.
             </BodyText>
             <div className="grid grid-cols-2 gap-4 my-6">
               <ShippingCard
                 title="Standard Shipping"
                 sub1="3–5 business days"
-                sub2="Complimentary on orders $100+"
+                sub2="Complimentary on orders 500.000đ+"
               />
               <ShippingCard
                 title="Expedited Shipping"
                 sub1="1–2 business days"
-                sub2="$24.00 flat rate on all orders"
+                sub2="60.000đ flat rate on all orders"
               />
             </div>
             <BodyText>

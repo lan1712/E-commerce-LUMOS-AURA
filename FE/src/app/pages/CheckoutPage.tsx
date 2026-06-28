@@ -330,9 +330,9 @@ export function CheckoutPage() {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                    style={{ borderColor: i === 0 ? "#6b5948" : "#d1c4bb" }}
+                    style={{ borderColor: paymentMethod === opt.id ? "#6b5948" : "#d1c4bb" }}
                   >
-                    {i === 0 && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#6b5948" }} />}
+                    {paymentMethod === opt.id && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#6b5948" }} />}
                   </div>
                   <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 15, color: "#3d3530" }}>{opt.label}</span>
                 </div>
