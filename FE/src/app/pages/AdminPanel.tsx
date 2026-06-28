@@ -86,7 +86,7 @@ function Sidebar({ active, setActive }: { active: AdminSection; setActive: (s: A
           <img src={imgAdminAvatar} alt="Admin" className="w-10 h-10 rounded-full object-cover" />
           <div className="flex-1 min-w-0">
             <p style={{ ...F, fontWeight: 600, fontSize: 13, color: "#1e1b18" }}>{user?.firstName || "Admin"} {user?.lastName || "User"}</p>
-            <p style={{ ...F, fontSize: 11, color: "#4e453e" }}>{user?.email || "admin@lumosaura.com"}</p>
+            <p style={{ ...F, fontSize: 11, color: "#4e453e" }}>{user?.email || "admin"}</p>
           </div>
           <button
             onClick={() => { logout(); navigate("home"); }}

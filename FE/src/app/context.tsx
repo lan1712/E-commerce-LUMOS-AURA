@@ -164,13 +164,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Mock admin login — works without a backend
-    if (email === "admin@lumosaura.com" && password === "admin123") {
-      const userData: AuthUser = { email, firstName: "Admin", lastName: "User", role: "ADMIN" };
-      setUser(userData);
-      localStorage.setItem("lumos_user", JSON.stringify(userData));
-      return;
-    }
     const res = await authApi.login(email, password);
     setToken(res.token);
     const userData: AuthUser = { email: res.email, firstName: res.firstName, lastName: res.lastName, role: res.role };
