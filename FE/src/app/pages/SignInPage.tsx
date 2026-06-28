@@ -374,7 +374,7 @@ export function SignInPage() {
               style={{
                 width: "100%",
                 borderRadius: 100,
-                border: "1.5px solid #e0cfc4",
+                border: "0px solid #e0cfc4",
                 overflow: "hidden",
                 display: "flex",
                 justifyContent: "center",
@@ -394,41 +394,6 @@ export function SignInPage() {
             </div>
 
             {/* Apple */}
-            <button
-              style={{
-                width: "100%",
-                padding: "13px 0",
-                borderRadius: 100,
-                border: "1.5px solid #e0cfc4",
-                backgroundColor: "transparent",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                cursor: "pointer",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(200,175,155,0.1)")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
-            >
-              <svg width="16" height="19" viewBox="0 0 16 19" fill="none">
-                <path
-                  d="M13.15 10.05c-.02-2.02 1.65-3 1.73-3.05C13.83 5.15 12.1 4.9 11.5 4.88c-1.38-.14-2.72.82-3.42.82-.72 0-1.8-.8-2.97-.78C3.6 4.94 2.2 5.88 1.43 7.28-1.1 11.8.72 18.6 3.2 22.32c1.24 1.8 2.7 3.8 4.63 3.73 1.87-.07 2.57-1.2 4.83-1.2 2.23 0 2.88 1.2 4.83 1.16 2-.03 3.26-1.81 4.48-3.62a18.68 18.68 0 0 0 2.03-4.2c-.05-.02-3.88-1.5-3.9-5.14Z"
-                  fill="#3d2e22"
-                  transform="scale(0.55) translate(0, -4)"
-                />
-              </svg>
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#3d2e22",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                Continue with Apple
-              </span>
-            </button>
           </div>
 
           {/* Footer note */}
