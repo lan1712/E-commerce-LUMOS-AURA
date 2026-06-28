@@ -53,6 +53,9 @@ export function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<DisplayOrder | null>(null);
   const [loading, setLoading] = useState(false);
   const [retryMethod, setRetryMethod] = useState<string>("");
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState("");
+  const [retryNotice, setRetryNotice] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -89,8 +92,43 @@ export function OrdersPage() {
   useEffect(() => {
     if (displaySelected) {
       setRetryMethod(displaySelected.paymentMethod || "VNPAY");
+      setRetryError("");
+      setRetryNotice("");
     }
   }, [displaySelected]);
+
+  const handleRetryPayment = async () => {
+    if (!displaySelected) return;
+
+    setRetrying(true);
+    setRetryError("");
+    setRetryNotice("");
+    try {
+      const updated = await ordersApi.retryPayment(displaySelected.id, retryMethod);
+      if (updated.paymentUrl) {
+        window.location.href = updated.paymentUrl;
+        return;
+      }
+
+      setOrders((current) =>
+        current.map((order) =>
+          order.id === displaySelected.id
+            ? { ...order, paymentMethod: retryMethod, paymentUrl: undefined }
+            : order
+        )
+      );
+      setSelectedOrder((current) =>
+        current?.id === displaySelected.id
+          ? { ...current, paymentMethod: retryMethod, paymentUrl: undefined }
+          : current
+      );
+      setRetryNotice("Payment method updated. We will confirm this order manually.");
+    } catch (error) {
+      setRetryError(error instanceof Error ? error.message : "Could not retry payment.");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
@@ -246,6 +284,55 @@ export function OrdersPage() {
                       </div>
                     ))}
                   </div>
+
+                  {selectedOrder.status === "Pending" && (
+                    <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: "#fff8f5", border: "1px solid rgba(209,196,187,0.55)" }}>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "1px", color: "#7f756d", textTransform: "uppercase", marginBottom: 14 }}>
+                        Complete Payment
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { id: "VNPAY", label: "VNPay" },
+                          { id: "MOMO", label: "MoMo" },
+                          { id: "COD", label: "COD" },
+                        ].map((method) => (
+                          <button
+                            key={method.id}
+                            onClick={() => setRetryMethod(method.id)}
+                            className="rounded-full px-4 py-2.5 transition-opacity hover:opacity-80"
+                            style={{
+                              border: retryMethod === method.id ? "1px solid #6b5948" : "1px solid #d1c4bb",
+                              backgroundColor: retryMethod === method.id ? "#6b5948" : "white",
+                              fontFamily: "'Inter', sans-serif",
+                              fontWeight: 600,
+                              fontSize: 13,
+                              color: retryMethod === method.id ? "white" : "#6b5948",
+                            }}
+                          >
+                            {method.label}
+                          </button>
+                        ))}
+                      </div>
+                      {retryError && (
+                        <p className="mt-3" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#c0392b" }}>
+                          {retryError}
+                        </p>
+                      )}
+                      {retryNotice && (
+                        <p className="mt-3" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#1a6b3a" }}>
+                          {retryNotice}
+                        </p>
+                      )}
+                      <button
+                        onClick={handleRetryPayment}
+                        disabled={retrying}
+                        className="mt-4 w-full rounded-full px-6 py-3 transition-opacity hover:opacity-90 disabled:opacity-60"
+                        style={{ backgroundColor: "#6b5948", fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: "0.7px", color: "white" }}
+                      >
+                        {retrying ? "Processing..." : retryMethod === "COD" ? "Use COD" : "Pay Again"}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button

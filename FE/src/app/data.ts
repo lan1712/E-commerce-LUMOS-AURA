@@ -54,8 +54,12 @@ export function getProductImages(product: Product): string[] {
       return normalizedUrl;
     });
 
+  if (databaseImages.length > 0) {
+    return Array.from(new Set(databaseImages));
+  }
+
   const fallbackImage = PRODUCT_FALLBACK_IMAGES[product.id] ?? PRODUCT_FALLBACK_IMAGES[product.slug ?? ""];
-  return Array.from(new Set([...databaseImages, fallbackImage].filter(Boolean)));
+  return fallbackImage ? [fallbackImage] : [];
 }
 
 export function formatPrice(value: number): string {
