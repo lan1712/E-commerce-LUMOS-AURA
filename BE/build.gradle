@@ -41,6 +41,9 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
+    // Cloud image storage
+    implementation 'com.cloudinary:cloudinary-http5:2.4.0'
+
     // JWT (jjwt 0.12.3)
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
