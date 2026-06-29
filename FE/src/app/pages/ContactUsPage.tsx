@@ -270,7 +270,7 @@ export function ContactUsPage() {
                       Flagship Boutique
                     </p>
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#675a4e", lineHeight: "20px" }}>
-                      124 Perfumer's Row<br />Paris, France 75008
+                      02 Võ Oanh<br />Thạnh Mỹ Tây, Hồ Chí Minh, Việt Nam
                     </p>
                   </div>
                 </div>
@@ -305,10 +305,13 @@ export function ContactUsPage() {
             <div className="rounded-2xl overflow-hidden relative" style={{ height: 200 }}>
               <img
                 src={imgMap}
-                alt="Map of Paris boutique location"
+                alt="Map of Lumos Aura boutique in Ho Chi Minh City"
                 className="w-full h-full object-cover"
               />
-              <button
+              <a
+                href="https://maps.google.com/?q=02+V%C3%B5+Oanh,+Th%E1%BA%A1nh+M%E1%BB%B9+T%C3%A2y,+H%E1%BB%93+Ch%C3%AD+Minh,+Vi%E1%BB%87t+Nam"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 hover:opacity-90 transition-opacity"
                 style={{
                   backgroundColor: "#6b5948",
@@ -321,7 +324,7 @@ export function ContactUsPage() {
                 }}
               >
                 Get Directions
-              </button>
+              </a>
             </div>
 
             {/* Hours */}

@@ -90,7 +90,7 @@ export function Footer() {
                   loading="lazy"
                   allowFullScreen
                   referrerPolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.142047342751!2d2.3002!3d48.8756!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66fc4bf0d5d59%3A0xb4f9b5b4b4b4b4b4!2sRue%20du%20Faubourg%20Saint-Honor%C3%A9%2C%20Paris!5e0!3m2!1sen!2sfr!4v1700000000000"
+                  src="https://www.google.com/maps?q=02%20V%C3%B5%20Oanh%2C%20Th%E1%BA%A1nh%20M%E1%BB%B9%20T%C3%A2y%2C%20H%E1%BB%93%20Ch%C3%AD%20Minh%2C%20Vi%E1%BB%87t%20Nam&output=embed"
                 />
               </div>
               <div
@@ -99,14 +99,14 @@ export function Footer() {
               >
                 <div>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, color: "#3d3530" }}>
-                    124 Perfumer's Row
+                    02 Võ Oanh
                   </p>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 11, color: "#7f756d", marginTop: 1 }}>
-                    Paris, France 75008
+                    Thạnh Mỹ Tây, Hồ Chí Minh, Việt Nam
                   </p>
                 </div>
                 <a
-                  href="https://maps.google.com/?q=124+Perfumer's+Row+Paris+75008"
+                  href="https://maps.google.com/?q=02+V%C3%B5+Oanh,+Th%E1%BA%A1nh+M%E1%BB%B9+T%C3%A2y,+H%E1%BB%93+Ch%C3%AD+Minh,+Vi%E1%BB%87t+Nam"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
