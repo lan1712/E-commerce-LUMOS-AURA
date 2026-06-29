@@ -14,6 +14,72 @@ const categoryLabels: Record<string, string> = {
 };
 
 const moodOptions = ["Relax & Sleep", "Focus & Work", "Warm & Cozy", "Clean & Fresh", "Floral & Romantic"];
+const moodKeywords: Record<string, string[]> = {
+  "Relax & Sleep": [
+    "relax",
+    "sleep",
+    "sleepy",
+    "calm",
+    "calming",
+    "bedtime",
+    "rest",
+    "meditation",
+    "slow evening",
+    "chamomile",
+    "lavender",
+  ],
+  "Focus & Work": [
+    "focus",
+    "work",
+    "workspace",
+    "desk",
+    "study",
+    "energetic",
+    "energy",
+    "bright",
+    "morning",
+    "coffee",
+    "cafe",
+  ],
+  "Warm & Cozy": [
+    "warm",
+    "cozy",
+    "comfort",
+    "comforting",
+    "amber",
+    "vanilla",
+    "sandalwood",
+    "cedar",
+    "cacao",
+    "rich",
+    "home",
+  ],
+  "Clean & Fresh": [
+    "clean",
+    "fresh",
+    "airy",
+    "minimal",
+    "spa",
+    "tea",
+    "white tea",
+    "bergamot",
+    "cotton",
+    "linen",
+    "soap",
+    "musk",
+  ],
+  "Floral & Romantic": [
+    "floral",
+    "romantic",
+    "rose",
+    "peony",
+    "feminine",
+    "soft",
+    "giftable",
+    "orange blossom",
+    "blossom",
+  ],
+};
 const sizeOptions = [
   { id: "mini", label: "Mini (<= 100g)" },
   { id: "medium", label: "Medium (101g - 200g)" },
@@ -33,6 +99,19 @@ function matchesSize(product: Product, sizeId: string) {
   if (sizeId === "mini") return grams <= 100;
   if (sizeId === "medium") return grams >= 101 && grams <= 200;
   return grams >= 201;
+}
+
+function getMoodSearchText(product: Product) {
+  return [product.name, product.category, ...product.tags, product.description, product.details, product.scentNotes]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function matchesMood(product: Product, mood: string) {
+  const text = getMoodSearchText(product);
+  const keywords = moodKeywords[mood] ?? [mood];
+  return keywords.some((keyword) => text.includes(keyword.toLowerCase()));
 }
 
 function CheckboxItem({
@@ -190,10 +269,7 @@ export function ShopPage() {
 
   const moodCounts = useMemo(() => {
     return moodOptions.reduce<Record<string, number>>((counts, mood) => {
-      const needle = mood.toLowerCase();
-      counts[mood] = shopProducts.filter((product) =>
-        [...product.tags, product.description, product.scentNotes].join(" ").toLowerCase().includes(needle),
-      ).length;
+      counts[mood] = shopProducts.filter((product) => matchesMood(product, mood)).length;
       return counts;
     }, {});
   }, [shopProducts]);
@@ -209,8 +285,7 @@ export function ShopPage() {
     const list = shopProducts.filter((product) => {
       if (selectedCategories.length && !selectedCategories.includes(product.category)) return false;
       if (selectedMoods.length) {
-        const text = [...product.tags, product.description, product.scentNotes].join(" ").toLowerCase();
-        if (!selectedMoods.some((mood) => text.includes(mood.toLowerCase()))) return false;
+        if (!selectedMoods.some((mood) => matchesMood(product, mood))) return false;
       }
       if (selectedSizes.length && !selectedSizes.some((size) => matchesSize(product, size))) return false;
       return getOpeningSalePrice(product.price) <= maxPrice;
