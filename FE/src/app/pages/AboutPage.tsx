@@ -91,7 +91,7 @@ export function AboutPage() {
                   marginBottom: 20,
                 }}
               >
-                Lumos Aura started in Paris in 2018 with a simple idea: a candle should do more than fill a room with scent. It should change the mood, mark the moment, and become part of your ritual.
+                Lumos Aura started in Viet Nam in 2026 with a simple idea: a candle should do more than fill a room with scent. It should change the mood, mark the moment, and become part of your ritual.
               </p>
               <p
                 style={{

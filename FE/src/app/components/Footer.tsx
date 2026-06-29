@@ -128,7 +128,7 @@ export function Footer() {
             <p
               style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 11, letterSpacing: "0.5px", color: "#a09589", marginTop: 16 }}
             >
-              © 2024 Lumos Aura. All rights reserved.
+              © 2026 Lumos Aura. All rights reserved.
             </p>
           </div>
         </div>
