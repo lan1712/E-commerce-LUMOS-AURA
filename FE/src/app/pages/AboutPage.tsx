@@ -39,8 +39,8 @@ export function AboutPage() {
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
 
       {/* Hero */}
-      <div className="pt-32 pb-0">
-        <div className="max-w-[1100px] mx-auto px-10">
+      <div className="pt-28 pb-0 sm:pt-32">
+        <div className="max-w-[1100px] mx-auto px-5 sm:px-8 lg:px-10">
           {/* Heading */}
           <div className="mb-10">
             <p
@@ -60,9 +60,9 @@ export function AboutPage() {
               style={{
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 400,
-                fontSize: 56,
+                fontSize: "clamp(40px, 10vw, 56px)",
                 color: "#3d3530",
-                lineHeight: "64px",
+                lineHeight: 1.14,
                 letterSpacing: "-0.5px",
                 maxWidth: 640,
               }}
@@ -72,8 +72,8 @@ export function AboutPage() {
           </div>
 
           {/* Image + intro text side by side */}
-          <div className="grid gap-12 items-start" style={{ gridTemplateColumns: "1fr 1fr" }}>
-            <div className="rounded-2xl overflow-hidden" style={{ height: 420 }}>
+          <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
+            <div className="rounded-2xl overflow-hidden" style={{ minHeight: 260, height: "clamp(260px, 58vw, 420px)" }}>
               <ImageWithFallback
                 src={IMG_HERO}
                 alt="Lumos Aura candle on wooden table"
@@ -126,8 +126,8 @@ export function AboutPage() {
 
       {/* Stats bar */}
       <div style={{ backgroundColor: "#3d3530" }} className="mt-16 py-10">
-        <div className="max-w-[1100px] mx-auto px-10">
-          <div className="grid grid-cols-4 gap-0">
+        <div className="max-w-[1100px] mx-auto px-5 sm:px-8 lg:px-10">
+          <div className="grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-0">
             {[
               { n: "2018", l: "Founded in Paris" },
               { n: "30+", l: "Unique Fragrances" },
@@ -168,24 +168,24 @@ export function AboutPage() {
       </div>
 
       {/* Our promises */}
-      <div className="max-w-[1100px] mx-auto px-10 py-20">
+      <div className="max-w-[1100px] mx-auto px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
         <h2
           className="mb-10"
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
-            fontSize: 40,
+            fontSize: "clamp(32px, 7vw, 40px)",
             color: "#3d3530",
             lineHeight: "48px",
           }}
         >
           Our Promise to You
         </h2>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid gap-5 md:grid-cols-2">
           {promises.map((p) => (
             <div
               key={p.title}
-              className="rounded-2xl p-7 flex gap-5 items-start"
+              className="rounded-2xl p-5 sm:p-7 flex gap-4 sm:gap-5 items-start"
               style={{ backgroundColor: "white", border: "1px solid #efe6e2" }}
             >
               <span style={{ fontSize: 28, lineHeight: 1, marginTop: 2 }}>{p.icon}</span>
@@ -220,17 +220,17 @@ export function AboutPage() {
 
       {/* Two images + short copy */}
       <div style={{ backgroundColor: "#f5ece7" }} className="py-20">
-        <div className="max-w-[1100px] mx-auto px-10">
-          <div className="grid grid-cols-2 gap-8 items-center">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
+        <div className="max-w-[1100px] mx-auto px-5 sm:px-8 lg:px-10">
+          <div className="grid items-center gap-8 lg:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="rounded-2xl overflow-hidden" style={{ height: "clamp(220px, 58vw, 320px)" }}>
                 <ImageWithFallback
                   src={IMG_CANDLE_JAR}
                   alt="Lumos Aura candle in glass jar"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="rounded-2xl overflow-hidden mt-8" style={{ height: 320 }}>
+              <div className="rounded-2xl overflow-hidden mt-6 sm:mt-8" style={{ height: "clamp(220px, 58vw, 320px)" }}>
                 <ImageWithFallback
                   src={IMG_CANDLE_GLOW}
                   alt="Candle glowing in the dark"
@@ -243,7 +243,7 @@ export function AboutPage() {
                 style={{
                   fontFamily: "'Playfair Display', serif",
                   fontWeight: 400,
-                  fontSize: 40,
+                  fontSize: "clamp(32px, 7vw, 40px)",
                   color: "#3d3530",
                   lineHeight: "48px",
                   marginBottom: 20,
@@ -275,7 +275,7 @@ export function AboutPage() {
               >
                 Our burn times range from 40 to 80+ hours depending on the size — so every purchase is an investment in many evenings of ambience.
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => navigate("shop")}
                   className="rounded-full px-6 py-3 hover:opacity-90 transition-opacity"
@@ -310,12 +310,12 @@ export function AboutPage() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-20 text-center px-8">
+      <div className="py-16 text-center px-5 sm:px-8 lg:py-20">
         <h2
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
-            fontSize: 44,
+            fontSize: "clamp(34px, 8vw, 44px)",
             color: "#3d3530",
             lineHeight: "52px",
             marginBottom: 12,

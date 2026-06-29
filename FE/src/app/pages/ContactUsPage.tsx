@@ -139,15 +139,15 @@ export function ContactUsPage() {
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
       {/* Hero header */}
-      <div className="pt-40 pb-16 flex flex-col items-center text-center px-8">
+      <div className="flex flex-col items-center px-5 pt-32 pb-12 text-center sm:px-8 sm:pt-40 sm:pb-16">
         <h1
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
-            fontSize: 56,
+            fontSize: "clamp(40px, 10vw, 56px)",
             color: "#3d3530",
             letterSpacing: "-0.5px",
-            lineHeight: "64px",
+            lineHeight: 1.14,
             marginBottom: 16,
           }}
         >
@@ -168,11 +168,11 @@ export function ContactUsPage() {
       </div>
 
       {/* Two-column contact area */}
-      <div className="max-w-[1100px] mx-auto w-full px-10 pb-20">
-        <div className="grid grid-cols-[1fr_360px] gap-8">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pb-16 sm:px-8 lg:px-10 lg:pb-20">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
           {/* Send a message */}
           <div
-            className="rounded-2xl p-8"
+            className="rounded-2xl p-5 sm:p-8"
             style={{ backgroundColor: "white", border: "1px solid #efe6e2", boxShadow: "0 4px 20px rgba(109,91,74,0.06)" }}
           >
             <h2
@@ -227,7 +227,7 @@ export function ContactUsPage() {
                 />
                 <button
                   onClick={handleSend}
-                  className="self-start rounded-full px-6 py-3 hover:opacity-90 transition-opacity flex items-center gap-2"
+                  className="flex w-full items-center justify-center gap-2 self-start rounded-full px-6 py-3 transition-opacity hover:opacity-90 sm:w-auto"
                   style={{
                     backgroundColor: "#6b5948",
                     fontFamily: "'Inter', sans-serif",
@@ -347,13 +347,13 @@ export function ContactUsPage() {
         </div>
 
         {/* FAQ */}
-        <div className="mt-20">
+        <div className="mt-16 lg:mt-20">
           <h2
             className="text-center mb-10"
             style={{
               fontFamily: "'Playfair Display', serif",
               fontWeight: 400,
-              fontSize: 40,
+              fontSize: "clamp(32px, 7vw, 40px)",
               color: "#3d3530",
               lineHeight: "48px",
             }}

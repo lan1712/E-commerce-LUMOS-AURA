@@ -42,7 +42,7 @@ export function SearchPage() {
     <div className="flex flex-col w-full min-h-screen" style={{ backgroundColor: "#fff8f5" }}>
       {/* Search bar header */}
       <div
-        className="sticky top-0 z-10 pt-24 pb-5 px-10"
+        className="sticky top-0 z-10 px-5 pt-24 pb-5 sm:px-8 lg:px-10"
         style={{ backgroundColor: "#fff8f5", borderBottom: "1px solid #efe6e2" }}
       >
         <div className="max-w-[760px] mx-auto">
@@ -74,7 +74,7 @@ export function SearchPage() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto w-full px-10 py-10 flex-1">
+      <div className="mx-auto w-full max-w-[1100px] flex-1 px-5 py-10 sm:px-8 lg:px-10">
         {/* No query — show popular */}
         {trimmed.length === 0 && (
           <div>
@@ -124,7 +124,7 @@ export function SearchPage() {
             >
               All products
             </p>
-            <div className="grid grid-cols-4 gap-5">
+            <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))" }}>
               {allProducts.map((p) => (
                 <ProductResult
                   key={p.id}
@@ -193,7 +193,7 @@ export function SearchPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-5">
+              <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))" }}>
                 {results.map((p) => (
                   <ProductResult
                     key={p.id}
@@ -234,7 +234,7 @@ function ProductResult({
       style={{ backgroundColor: "white", border: "1px solid #efe6e2" }}
       onClick={onNavigate}
     >
-      <div className="relative overflow-hidden" style={{ height: 200, backgroundColor: "#f5ece7" }}>
+      <div className="relative aspect-[4/3] overflow-hidden" style={{ backgroundColor: "#f5ece7" }}>
         <img
           src={product.image}
           alt={product.name}

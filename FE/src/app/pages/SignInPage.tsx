@@ -65,7 +65,7 @@ export function SignInPage() {
     <div
       style={{
         display: "flex",
-        height: "100vh",
+        minHeight: "100dvh",
         width: "100%",
         overflow: "hidden",
         backgroundColor: "#f5ede4",
@@ -76,9 +76,9 @@ export function SignInPage() {
           LEFT PANEL — form
       ═══════════════════════════════════════════════════════════ */}
       <div
+        className="w-full lg:max-w-[520px]"
         style={{
           width: "100%",
-          maxWidth: 520,
           flexShrink: 0,
           backgroundColor: "#fdf8f4",
           display: "flex",
@@ -92,7 +92,7 @@ export function SignInPage() {
         {/* Top bar */}
         <div
           style={{
-            padding: "28px 40px 0",
+            padding: "clamp(20px, 5vw, 28px) clamp(20px, 7vw, 40px) 0",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -155,7 +155,7 @@ export function SignInPage() {
         {/* Divider line under top bar */}
         <div
           style={{
-            margin: "20px 40px 0",
+            margin: "20px clamp(20px, 7vw, 40px) 0",
             height: 1,
             background: "linear-gradient(to right, #e8d9cc, transparent)",
           }}
@@ -168,11 +168,11 @@ export function SignInPage() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "36px 44px 44px",
+            padding: "clamp(28px, 7vw, 36px) clamp(20px, 7vw, 44px) clamp(28px, 8vw, 44px)",
           }}
         >
           {/* Mode toggle */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 36 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 36, flexWrap: "wrap" }}>
             {(["signin", "create"] as const).map((m) => {
               const active = mode === m;
               return (
@@ -186,7 +186,7 @@ export function SignInPage() {
                     padding: 0,
                     fontFamily: "'Playfair Display', serif",
                     fontWeight: 400,
-                    fontSize: active ? 46 : 26,
+                    fontSize: active ? "clamp(38px, 12vw, 46px)" : "clamp(22px, 7vw, 26px)",
                     color: active ? "#3d2e22" : "#b09a88",
                     letterSpacing: active ? "-0.02em" : "0",
                     lineHeight: 1,
@@ -217,7 +217,7 @@ export function SignInPage() {
           {/* Fields */}
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             {mode === "create" && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 170px), 1fr))", gap: 12 }}>
                 {[
                   { label: "First Name", val: firstName, set: setFirstName, ph: "Elara" },
                   { label: "Last Name", val: lastName, set: setLastName, ph: "Vance" },
@@ -253,7 +253,7 @@ export function SignInPage() {
             </FieldGroup>
 
             {mode === "signin" && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}
                   onClick={() => setRemember(!remember)}
@@ -389,7 +389,7 @@ export function SignInPage() {
                 text="continue_with"
                 shape="pill"
                 logo_alignment="center"
-                width="432"
+                width="320"
               />
             </div>
 

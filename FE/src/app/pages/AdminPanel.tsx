@@ -48,25 +48,25 @@ function Sidebar({ active, setActive }: { active: AdminSection; setActive: (s: A
   const { user, logout } = useAuth();
   const { navigate } = useNav();
   return (
-    <aside className="fixed top-0 left-0 h-screen w-64 flex flex-col py-8 z-20"
+    <aside className="relative z-20 flex w-full flex-col gap-4 px-4 py-4 lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-64 lg:px-0 lg:py-8"
       style={{ backgroundColor: "#fbf2ed", borderRight: "1px solid #d1c4bb" }}>
       {/* Brand */}
-      <div className="px-6 pb-8">
-        <p style={{ ...PF, fontWeight: 700, fontSize: 28, color: "#6b5948", lineHeight: "34px" }}>
+      <div className="px-2 lg:px-6 lg:pb-8">
+        <p style={{ ...PF, fontWeight: 700, fontSize: "clamp(22px, 6vw, 28px)", color: "#6b5948", lineHeight: "1.18" }}>
           Lumos Aura<br />Command
         </p>
         <p style={{ ...F, fontWeight: 600, fontSize: 13, color: "#4e453e", marginTop: 4 }}>System Administrator</p>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 flex flex-col gap-1">
+      <nav className="flex gap-2 overflow-x-auto px-0 pb-1 lg:flex-1 lg:flex-col lg:gap-1 lg:px-2 lg:pb-0">
         {navItems.map(({ key, label, icon: Icon }) => {
           const isActive = active === key;
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors hover:opacity-90"
+              className="flex shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:opacity-90 lg:w-full"
               style={{
                 backgroundColor: isActive ? "#6b5948" : "transparent",
                 ...F, fontWeight: 600, fontSize: 14, letterSpacing: "0.7px",
@@ -81,7 +81,7 @@ function Sidebar({ active, setActive }: { active: AdminSection; setActive: (s: A
       </nav>
 
       {/* User footer */}
-      <div className="px-6 pt-4" style={{ borderTop: "1px solid rgba(209,196,187,0.3)" }}>
+      <div className="hidden px-6 pt-4 lg:block" style={{ borderTop: "1px solid rgba(209,196,187,0.3)" }}>
         <div className="flex items-center gap-3">
           <img src={imgAdminAvatar} alt="Admin" className="w-10 h-10 rounded-full object-cover" />
           <div className="flex-1 min-w-0">
@@ -114,9 +114,9 @@ function TopHeader({ placeholder }: { placeholder: string }) {
   };
 
   return (
-    <header className="fixed top-0 left-64 right-0 h-16 flex items-center justify-between px-6 z-10"
+    <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-3 px-4 py-3 lg:fixed lg:left-64 lg:right-0 lg:h-16 lg:px-6 lg:py-0"
       style={{ backgroundColor: "#fff8f5", borderBottom: "1px solid #d1c4bb" }}>
-      <div className="relative max-w-xs w-full">
+      <div className="relative w-full max-w-xs">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" color="#4e453e" />
         <input
           type="text"
@@ -125,7 +125,7 @@ function TopHeader({ placeholder }: { placeholder: string }) {
           style={{ backgroundColor: "#f5ece7", ...F, color: "#4e453e", border: "1px solid #d1c4bb" }}
         />
       </div>
-      <div className="flex items-center gap-2 relative">
+      <div className="relative flex shrink-0 items-center gap-2">
         {/* Notifications */}
         <div className="relative">
           <button 
@@ -246,7 +246,7 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
         {metrics.map((m) => (
           <div key={m.label} className="rounded-lg p-6" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
             <div className="flex items-start justify-between mb-2">
@@ -266,8 +266,8 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 rounded-lg p-6" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
+      <div className="grid gap-4 xl:grid-cols-3 xl:gap-6">
+        <div className="rounded-lg p-4 sm:p-6 xl:col-span-2" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
           <div className="flex items-center justify-between mb-4">
             <p style={{ ...F, fontWeight: 600, fontSize: 13, letterSpacing: "0.7px", color: "#1e1b18" }}>REVENUE GROWTH</p>
             <span className="rounded px-3 py-1 text-sm" style={{ ...F, backgroundColor: "#e9e1dc", color: "#1e1b18" }}>This Year</span>
@@ -280,7 +280,7 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-lg p-6" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
+        <div className="rounded-lg p-4 sm:p-6" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
           <div className="flex items-center justify-between mb-4">
             <p style={{ ...F, fontWeight: 600, fontSize: 13, letterSpacing: "0.7px", color: "#1e1b18" }}>TOP SELLERS</p>
             <MoreVertical size={16} color="#4e453e" />
@@ -307,7 +307,8 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
           <p style={{ ...F, fontWeight: 600, fontSize: 13, letterSpacing: "0.7px", color: "#1e1b18" }}>RECENT ORDERS</p>
           <button onClick={onViewOrders} style={{ ...F, fontSize: 14, color: "#6b5948" }} className="hover:opacity-70">View All</button>
         </div>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[680px]">
           <thead>
             <tr style={{ backgroundColor: "rgba(233,225,220,0.3)", borderBottom: "1px solid #d1c4bb" }}>
               {["ORDER ID", "CUSTOMER", "DATE", "AMOUNT", "STATUS"].map((h) => (
@@ -329,6 +330,7 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -557,7 +559,7 @@ function ProductEditor({
                 </div>
                 <div>
                   <label className={labelClass}>Product Type</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {[
                       { value: "Core Collection", label: "Candle", icon: Flame },
                       { value: "Gift Collection", label: "Gift Set", icon: Gift },
@@ -647,7 +649,7 @@ function ProductEditor({
               <input type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" />
             </label>
             <p className="mt-4 text-[11px] text-[#91877f]">Select an image below to use it as the main thumbnail.</p>
-            <div className="mt-3 grid grid-cols-4 gap-2">
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {form.thumbnails.map((url) => (
                 <div key={url} className="group relative aspect-square overflow-hidden rounded-md border" style={{ borderColor: form.image === url ? "#80664f" : "#e3dad3" }}>
                   <button onClick={() => update("image", url)} className="h-full w-full"><img src={url} alt="" className="h-full w-full object-cover" /></button>
@@ -764,7 +766,7 @@ function ProductsSection() {
 
   return (
     <div className="flex flex-col gap-6 relative">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Products</h1>
         <button onClick={() => openEditor()} className="flex items-center gap-2 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
           style={{ backgroundColor: "#6b5948", ...F, fontWeight: 600, fontSize: 14, color: "white" }}>
@@ -774,7 +776,7 @@ function ProductsSection() {
 
       <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
         {/* Filters bar */}
-        <div className="flex flex-wrap items-center gap-3 px-5 py-5" style={{ backgroundColor: "#fff", borderBottom: "1px solid #e2d8d1" }}>
+        <div className="flex flex-wrap items-center gap-3 px-4 py-5 sm:px-5" style={{ backgroundColor: "#fff", borderBottom: "1px solid #e2d8d1" }}>
           <div className="relative min-w-[240px] flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" color="#4e453e" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..."
@@ -785,17 +787,17 @@ function ProductsSection() {
             <ListFilter size={17} color="#6b5948" />
           </button>
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-11 min-w-[155px] rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none" style={F}>
+            className="h-11 min-w-[min(155px,100%)] flex-1 rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none sm:flex-none" style={F}>
             <option value="all">All categories</option>
             {categories.map((category) => <option key={category} value={category}>{category}</option>)}
           </select>
           <select value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}
-            className="h-11 min-w-[150px] rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none" style={F}>
+            className="h-11 min-w-[min(150px,100%)] flex-1 rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none sm:flex-none" style={F}>
             <option value="all">All collections</option>
             {collections.map((collection) => <option key={collection} value={collection}>{collection}</option>)}
           </select>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-11 min-w-[130px] rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none" style={F}>
+            className="h-11 min-w-[min(130px,100%)] flex-1 rounded-md border border-[#d8ccc4] bg-white px-3 text-sm outline-none sm:flex-none" style={F}>
             <option value="all">All statuses</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -900,7 +902,7 @@ function OrdersSection() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Orders</h1>
           <p style={{ ...F, fontSize: 14, color: "#4e453e", marginTop: 4 }}>Manage and track customer orders.</p>
@@ -912,7 +914,7 @@ function OrdersSection() {
 
       <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
         {/* Tabs */}
-        <div className="flex gap-0 px-6 pt-4" style={{ borderBottom: "1px solid #d1c4bb" }}>
+        <div className="flex gap-0 overflow-x-auto px-4 pt-4 sm:px-6" style={{ borderBottom: "1px solid #d1c4bb" }}>
           {(["All", "PENDING", "PAID", "PROCESSING", "COMPLETED"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className="px-4 pb-3 mr-2 text-sm"
@@ -922,7 +924,8 @@ function OrdersSection() {
             </button>
           ))}
         </div>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[820px]">
           <thead>
             <tr style={{ borderBottom: "1px solid #d1c4bb" }}>
               {["Order ID", "Date", "Customer", "Total", "Status", "Payment", "Action"].map(h => (
@@ -965,6 +968,7 @@ function OrdersSection() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: "1px solid #d1c4bb" }}>
           <span style={{ ...F, fontSize: 14, color: "#4e453e" }}>Showing {filtered.length} results</span>
         </div>
@@ -1040,7 +1044,7 @@ function UsersSection() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Users</h1>
           <p style={{ ...F, fontSize: 14, color: "#4e453e", marginTop: 4 }}>Manage customer and administrative accounts.</p>
@@ -1062,7 +1066,8 @@ function UsersSection() {
               style={{ border: "1px solid #d1c4bb", ...F, color: "#4e453e", backgroundColor: "white" }} />
           </div>
         </div>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[820px]">
           <thead>
             <tr style={{ borderBottom: "1px solid #d1c4bb" }}>
               <th className="w-10 px-6 py-3" />
@@ -1111,12 +1116,13 @@ function UsersSection() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Add User Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
+          <div className="w-[min(400px,calc(100vw-32px))] rounded-xl bg-white p-5 shadow-xl sm:p-6">
             <h2 className="text-xl font-bold mb-4" style={PF}>Add New User</h2>
             <div className="flex flex-col gap-4">
               <input placeholder="First Name" className="border p-2 rounded text-sm outline-none" 
@@ -1161,7 +1167,7 @@ const voucherRows = [
 function VouchersSection() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Voucher Management</h1>
           <p style={{ ...F, fontSize: 14, color: "#4e453e", marginTop: 4 }}>Track active campaigns and generate new promotion codes.</p>
@@ -1172,9 +1178,9 @@ function VouchersSection() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid gap-4 xl:grid-cols-3 xl:gap-6">
         {/* Chart */}
-        <div className="col-span-2 rounded-xl p-6" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
+        <div className="rounded-xl p-4 sm:p-6 xl:col-span-2" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
           <div className="flex items-center justify-between mb-4">
             <p style={{ ...F, fontWeight: 600, fontSize: 13, letterSpacing: "0.7px", color: "#1e1b18" }}>CAMPAIGN USAGE TRENDS</p>
             <span className="px-3 py-1 rounded text-sm" style={{ ...F, backgroundColor: "#fef9c3", color: "#854d0e" }}>Last 30 Days</span>
@@ -1213,7 +1219,8 @@ function VouchersSection() {
             <button className="p-1.5 rounded" style={{ border: "1px solid #d1c4bb" }}><Download size={14} color="#4e453e" /></button>
           </div>
         </div>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px]">
           <thead>
             <tr style={{ borderBottom: "1px solid #d1c4bb" }}>
               {["CODE", "TYPE / VALUE", "VALIDITY PERIOD", "USAGE", "STATUS"].map(h => (
@@ -1235,6 +1242,7 @@ function VouchersSection() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -1286,7 +1294,7 @@ function ReviewsSection() {
         <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Moderation Queue</h1>
         <p style={{ ...F, fontSize: 14, color: "#4e453e", marginTop: 4 }}>Review and manage pending customer feedback.</p>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {["Pending Approval", "Reported", "All Reviews"].map(t => (
           <button key={t} onClick={() => setTab(t)}
             className="px-4 py-2 rounded-lg text-sm transition-colors"
@@ -1297,13 +1305,13 @@ function ReviewsSection() {
             {t}
           </button>
         ))}
-        <button className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
+        <button className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm sm:ml-auto"
           style={{ border: "1px solid #d1c4bb", ...F, color: "#4e453e" }}>
           <Settings size={14} /> More Filters
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
         {reviewCards.map((r, idx) => (
           <div key={idx} className="rounded-xl p-5 flex flex-col gap-4" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
             {/* Product */}
@@ -1338,7 +1346,7 @@ function ReviewsSection() {
               <p style={{ ...F, fontSize: 13, color: "#4e453e", lineHeight: "20px" }}>{r.text}</p>
             </div>
             {/* Actions */}
-            <div className="flex items-center gap-2 pt-1" style={{ borderTop: "1px solid #efe6e2" }}>
+            <div className="flex flex-wrap items-center gap-2 pt-1" style={{ borderTop: "1px solid #efe6e2" }}>
               {r.actions.map((a) => {
                 const isApprove = a === "Approve";
                 const isDelete = a === "Delete Review";
@@ -1414,7 +1422,7 @@ function PoliciesSection() {
         <span style={{ color: "#1e1b18" }}>Policies</span>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Edit Shipping Policy</h1>
         <div className="flex gap-3">
           <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg"
@@ -1430,7 +1438,7 @@ function PoliciesSection() {
         </div>
       </div>
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: "1fr 300px" }}>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
         {/* Editor */}
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #d1c4bb" }}>
           {/* Toolbar */}
@@ -1526,8 +1534,8 @@ export function AdminPanel() {
     <div className="min-h-screen" style={{ backgroundColor: "#fff8f5" }}>
       <Sidebar active={section} setActive={setSection} />
       <TopHeader placeholder={searchPlaceholders[section]} />
-      <main className="pl-64 pt-16">
-        <div className="p-8 max-w-[1200px]">
+      <main className="lg:pl-64 lg:pt-16">
+        <div className="w-full max-w-[1200px] p-4 sm:p-6 lg:p-8">
           {section === "dashboard" && <DashboardSection onViewOrders={() => setSection("orders")} />}
           {section === "products" && <ProductsSection />}
           {section === "orders" && <OrdersSection />}

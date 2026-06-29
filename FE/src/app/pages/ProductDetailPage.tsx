@@ -212,7 +212,7 @@ export function ProductDetailPage({ productId }: Props) {
       {related.length > 0 && (
         <section className="max-w-[1440px] mx-auto w-full px-5 md:px-10 py-20">
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(32px, 7vw, 40px)", color: "#6b5948", lineHeight: 1.2, marginBottom: 40 }}>You May Also Like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+          <div className="grid gap-5 md:gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 230px), 1fr))" }}>
             {related.map((item) => <ProductCard key={item.id} product={item} />)}
           </div>
         </section>

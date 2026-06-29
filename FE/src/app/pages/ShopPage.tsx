@@ -417,7 +417,7 @@ export function ShopPage() {
               {error ? (
                 <div className="py-20 text-center text-[#6b5948]">Could not load products: {error}</div>
               ) : loading ? (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 230px), 1fr))" }}>
                   {Array.from({ length: 8 }).map((_, index) => (
                     <div key={index} className="rounded-md border border-[#eadfd8] bg-white">
                       <div className="aspect-[1.25/1] animate-pulse bg-[#f0e8e2]" />
@@ -436,7 +436,7 @@ export function ShopPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 230px), 1fr))" }}>
                   {filtered.map((product, index) => (
                     <ProductGridCard
                       key={product.id}

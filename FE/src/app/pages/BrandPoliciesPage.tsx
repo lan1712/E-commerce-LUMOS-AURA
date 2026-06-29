@@ -101,9 +101,9 @@ export function BrandPoliciesPage() {
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
-      <div className="max-w-[1280px] mx-auto w-full px-10 pt-32 pb-20 flex gap-16">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-5 pt-28 pb-16 sm:px-8 sm:pt-32 lg:flex-row lg:gap-16 lg:px-10 lg:pb-20">
         {/* Sidebar */}
-        <aside className="w-48 shrink-0">
+        <aside className="w-full shrink-0 lg:w-48">
           <p
             style={{
               fontFamily: "'Inter', sans-serif",
@@ -117,12 +117,12 @@ export function BrandPoliciesPage() {
           >
             Policies
           </p>
-          <nav className="flex flex-col gap-1 sticky top-28">
+          <nav className="sticky top-20 flex gap-2 overflow-x-auto pb-1 lg:top-28 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
             {sections.map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => scrollTo(id)}
-                className="text-left px-2 py-2 rounded transition-colors"
+                className="shrink-0 rounded px-3 py-2 text-left transition-colors lg:px-2"
                 style={{
                   fontFamily: "'Inter', sans-serif",
                   fontWeight: activeSection === id ? 600 : 400,
@@ -185,7 +185,7 @@ export function BrandPoliciesPage() {
             <BodyText>
               All orders are carefully prepared and dispatched from our atelier. We offer complimentary standard shipping on all domestic orders above 500.000đ.
             </BodyText>
-            <div className="grid grid-cols-2 gap-4 my-6">
+            <div className="my-6 grid gap-4 sm:grid-cols-2">
               <ShippingCard
                 title="Standard Shipping"
                 sub1="3–5 business days"
@@ -235,7 +235,7 @@ export function BrandPoliciesPage() {
           </PolicySection>
 
           <div
-            className="rounded-2xl p-6 flex items-center justify-between"
+            className="flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
             style={{ backgroundColor: "#f5ece7" }}
           >
             <div>

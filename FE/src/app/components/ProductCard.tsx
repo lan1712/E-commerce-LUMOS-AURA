@@ -17,12 +17,12 @@ export function ProductCard({ product }: ProductCardProps) {
     <div className="flex flex-col gap-4 group cursor-pointer">
       <div
         className="relative overflow-hidden rounded-2xl flex items-center justify-center"
-        style={{ backgroundColor: "#fff8f5", height: 300, boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}
+        style={{ backgroundColor: "#fff8f5", aspectRatio: "1 / 1", minHeight: 220, boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}
         onClick={() => navigate("product", product.id)}
       >
         <ProductImage
           product={product}
-          className="object-contain h-[225px] w-auto transition-transform duration-500 group-hover:scale-105"
+          className="h-[78%] w-[78%] object-contain transition-transform duration-500 group-hover:scale-105"
         />
         <button
           className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"

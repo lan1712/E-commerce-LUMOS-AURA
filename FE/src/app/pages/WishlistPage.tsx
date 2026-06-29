@@ -46,9 +46,9 @@ export function WishlistPage() {
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
-      <div className="max-w-[1100px] mx-auto w-full px-10 pt-32 pb-20">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pt-28 pb-16 sm:px-8 sm:pt-32 lg:px-10 lg:pb-20">
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p
               style={{
@@ -67,7 +67,7 @@ export function WishlistPage() {
               style={{
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 400,
-                fontSize: 48,
+                fontSize: "clamp(38px, 10vw, 48px)",
                 color: "#3d3530",
                 lineHeight: "56px",
               }}
@@ -145,7 +145,7 @@ export function WishlistPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-5">
+          <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))" }}>
             {wishedProducts.map((product) => (
               <div
                 key={product.id}
@@ -155,7 +155,7 @@ export function WishlistPage() {
                 {/* Image */}
                 <div
                   className="relative cursor-pointer"
-                  style={{ height: 220, backgroundColor: "#f5ece7" }}
+                  style={{ aspectRatio: "4 / 3", backgroundColor: "#f5ece7" }}
                   onClick={() => navigate("product", product.id)}
                 >
                   <img

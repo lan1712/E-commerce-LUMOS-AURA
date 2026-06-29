@@ -83,7 +83,7 @@ function AddressForm({
       className="rounded-2xl p-7"
       style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}
     >
-      <div className="grid grid-cols-2 gap-5 mb-5">
+      <div className="mb-5 grid gap-5 sm:grid-cols-2">
         <div>
           <label style={labelStyle}>Address Label</label>
           <input style={inputStyle} value={form.label} onChange={set("label")} placeholder="e.g. Home, Office" />
@@ -101,7 +101,7 @@ function AddressForm({
         <label style={labelStyle}>Apartment / Suite (optional)</label>
         <input style={inputStyle} value={form.line2} onChange={set("line2")} placeholder="Apt, floor, suite…" />
       </div>
-      <div className="grid grid-cols-3 gap-5 mb-5">
+      <div className="mb-5 grid gap-5 sm:grid-cols-3">
         <div>
           <label style={labelStyle}>City</label>
           <input style={inputStyle} value={form.city} onChange={set("city")} placeholder="City" />
@@ -126,7 +126,7 @@ function AddressForm({
           Set as default shipping address
         </span>
       </label>
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <button
           onClick={() => onSave(form)}
           className="rounded-full px-6 py-3 hover:opacity-90 transition-opacity"
@@ -216,9 +216,9 @@ export function AddressesPage() {
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
-      <div className="max-w-[1100px] mx-auto w-full px-10 pt-32 pb-20">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pt-28 pb-16 sm:px-8 sm:pt-32 lg:px-10 lg:pb-20">
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p
               style={{
@@ -237,7 +237,7 @@ export function AddressesPage() {
               style={{
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 400,
-                fontSize: 48,
+                fontSize: "clamp(38px, 10vw, 48px)",
                 color: "#3d3530",
                 lineHeight: "56px",
               }}
@@ -272,14 +272,14 @@ export function AddressesPage() {
             ) : (
               <div
                 key={addr.id}
-                className="rounded-2xl p-6 flex items-start justify-between"
+                className="flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6"
                 style={{
                   backgroundColor: "white",
                   border: addr.isDefault ? "1px solid #6b5948" : "1px solid #efe6e2",
                   boxShadow: "0 2px 12px rgba(109,91,74,0.05)",
                 }}
               >
-                <div className="flex gap-4">
+                <div className="flex min-w-0 gap-4">
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5"
                     style={{ backgroundColor: "#f5ece7" }}

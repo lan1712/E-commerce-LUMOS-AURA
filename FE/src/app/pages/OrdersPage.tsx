@@ -132,10 +132,10 @@ export function OrdersPage() {
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
-      <div className="max-w-[1280px] mx-auto w-full px-10 pt-32 pb-20">
+      <div className="mx-auto w-full max-w-[1280px] px-5 pt-28 pb-16 sm:px-8 sm:pt-32 lg:px-10 lg:pb-20">
         <h1
           className="mb-2"
-          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 56, color: "#3d3530", letterSpacing: "-0.5px", lineHeight: "64px" }}
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: "clamp(40px, 10vw, 56px)", color: "#3d3530", letterSpacing: "-0.5px", lineHeight: 1.14 }}
         >
           Order History
         </h1>
@@ -145,9 +145,9 @@ export function OrdersPage() {
           Track your recent olfactory acquisitions and past curations.
         </p>
 
-        <div className="flex gap-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
           {/* Order list */}
-          <div className="w-72 shrink-0 flex flex-col gap-3">
+          <div className="flex w-full shrink-0 gap-3 overflow-x-auto pb-2 lg:w-72 lg:flex-col lg:overflow-visible lg:pb-0">
             {(isLoggedIn && !loading && orders.length === 0) ? (
               <div className="text-center py-8">
                 <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 20, color: "#6b5948" }}>No orders yet</p>
@@ -165,7 +165,7 @@ export function OrdersPage() {
                 <button
                   key={order.id}
                   onClick={() => setSelectedOrder(order)}
-                  className="text-left rounded-2xl p-4 transition-all"
+                  className="min-w-[260px] rounded-2xl p-4 text-left transition-all lg:min-w-0"
                   style={{
                     backgroundColor: isSelected ? "white" : "#f5ece7",
                     border: isSelected ? "1px solid #d1c4bb" : "1px solid transparent",
@@ -215,11 +215,11 @@ export function OrdersPage() {
           </div>
 
           {/* Order detail */}
-          <div className="flex-1 bg-white rounded-2xl p-10 flex flex-col justify-between" style={{ minHeight: "600px", boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}>
+          <div className="flex min-w-0 flex-1 flex-col justify-between rounded-2xl bg-white p-5 sm:p-7 lg:p-10" style={{ minHeight: "min(600px, 100dvh)", boxShadow: "0px 40px 40px -15px rgba(109,91,74,0.04)" }}>
             {selectedOrder ? (
               <>
                 <div>
-                  <div className="flex items-start justify-between mb-10">
+                  <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:mb-10">
                     <div>
                       <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 36, color: "#3d3530", lineHeight: "44px" }}>
                         Order Details
@@ -239,11 +239,11 @@ export function OrdersPage() {
                   </div>
 
                   {/* Tracking journey */}
-                  <div className="rounded-2xl p-6 my-6" style={{ backgroundColor: "#fff8f5" }}>
+                  <div className="my-6 overflow-x-auto rounded-2xl p-5 sm:p-6" style={{ backgroundColor: "#fff8f5" }}>
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "1px", color: "#7f756d", textTransform: "uppercase", textAlign: "center", marginBottom: 20 }}>
                       Tracking Journey
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex min-w-[520px] items-center justify-between">
                       {trackingSteps.map((s, i) => {
                         const done = i <= selectedOrder.trackingStep;
                         const active = i === selectedOrder.trackingStep;
@@ -269,7 +269,7 @@ export function OrdersPage() {
                   </p>
                   <div className="flex flex-col gap-4">
                     {selectedOrder.items.map((item, i) => (
-                      <div key={i} className="flex gap-4 items-center py-4" style={{ borderBottom: "1px solid rgba(209,196,187,0.3)" }}>
+                      <div key={i} className="flex flex-wrap gap-4 py-4 sm:flex-nowrap sm:items-center" style={{ borderBottom: "1px solid rgba(209,196,187,0.3)" }}>
                         <div className="rounded-xl overflow-hidden shrink-0" style={{ width: 64, height: 64, backgroundColor: "#fff8f5" }}>
                           {item.image ? <img src={item.image} alt={item.name} className="w-full h-full object-contain" /> : <div className="w-full h-full" style={{ backgroundColor: "#efe6e2" }} />}
                         </div>
@@ -277,7 +277,7 @@ export function OrdersPage() {
                           <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 18, color: "#3d3530" }}>{item.name}</p>
                           <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#7f756d" }}>{item.desc}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="ml-auto text-right">
                           <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#7f756d" }}>Qty {item.qty}</p>
                           <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: "#3d3530" }}>{formatPrice(item.price * item.qty)}</p>
                         </div>
@@ -290,7 +290,7 @@ export function OrdersPage() {
                       <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "1px", color: "#7f756d", textTransform: "uppercase", marginBottom: 14 }}>
                         Complete Payment
                       </p>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         {[
                           { id: "VNPAY", label: "VNPay" },
                           { id: "MOMO", label: "MoMo" },

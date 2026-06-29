@@ -122,9 +122,9 @@ export function AccountSettingsPage() {
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: "#fff8f5" }}>
-      <div className="max-w-[1280px] mx-auto w-full px-10 pt-32 pb-20 flex gap-16">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-5 pt-28 pb-16 sm:px-8 sm:pt-32 lg:flex-row lg:gap-16 lg:px-10 lg:pb-20">
         {/* Sidebar */}
-        <aside className="w-40 shrink-0">
+        <aside className="w-full shrink-0 lg:w-40">
           <h1
             style={{
               fontFamily: "'Playfair Display', serif",
@@ -137,7 +137,7 @@ export function AccountSettingsPage() {
           >
             My<br />Account
           </h1>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
             {navItems.map(({ key, label }) => (
               <button
                 key={key}
@@ -147,7 +147,7 @@ export function AccountSettingsPage() {
                   else if (key === "addresses") navigate("addresses");
                   else setActiveSection(key as Section);
                 }}
-                className="text-left px-2 py-1.5 rounded transition-colors"
+                className="shrink-0 rounded px-3 py-2 text-left transition-colors lg:px-2 lg:py-1.5"
                 style={{
                   fontFamily: "'Inter', sans-serif",
                   fontWeight: activeSection === key ? 600 : 400,
@@ -163,7 +163,7 @@ export function AccountSettingsPage() {
           </nav>
           <button
             onClick={() => { logout(); navigate("home"); }}
-            className="mt-6 text-left px-2 py-1.5 hover:opacity-70 transition-opacity"
+            className="mt-4 text-left px-2 py-1.5 hover:opacity-70 transition-opacity lg:mt-6"
             style={{
               fontFamily: "'Inter', sans-serif",
               fontWeight: 400,
@@ -178,7 +178,7 @@ export function AccountSettingsPage() {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Dashboard cards row */}
-          <div className="grid grid-cols-2 gap-6 mb-12">
+          <div className="mb-10 grid gap-5 md:grid-cols-2 lg:mb-12 lg:gap-6">
             {/* Reward balance */}
             <div
               className="rounded-2xl p-6"
@@ -203,7 +203,7 @@ export function AccountSettingsPage() {
                 style={{
                   fontFamily: "'Playfair Display', serif",
                   fontWeight: 400,
-                  fontSize: 48,
+                  fontSize: "clamp(36px, 9vw, 48px)",
                   color: "#3d3530",
                   lineHeight: "56px",
                 }}
@@ -318,8 +318,8 @@ export function AccountSettingsPage() {
               Personal Information
             </h2>
 
-            <div className="flex flex-col gap-8 max-w-[640px]">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="flex max-w-[640px] flex-col gap-8">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <Field
                   label="First Name"
                   value={form.firstName}
@@ -376,7 +376,7 @@ export function AccountSettingsPage() {
               {saveError && (
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#c0392b" }}>{saveError}</p>
               )}
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:gap-4">
                 <button
                   onClick={handleSave}
                   className="rounded-full px-6 py-3 hover:opacity-90 transition-all"
@@ -429,7 +429,7 @@ export function AccountSettingsPage() {
             style={{ backgroundColor: "white", boxShadow: "0 20px 60px rgba(28,22,18,0.2)" }}
           >
             <button
-              onClick={() => { setShowPasswordModal(false); setPwForm({ current: "", next: "", confirm: "" }); }}
+              onClick={() => { setShowPasswordModal(false); setPwForm({ otp: "", next: "", confirm: "" }); }}
               className="absolute top-5 right-5 hover:opacity-70 transition-opacity"
             >
               <X size={18} color="#7f756d" />
