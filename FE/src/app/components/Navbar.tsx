@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ShoppingBag, Search, User, X, LogOut } from "lucide-react";
+import { ShoppingBag, Search, User, X, LogOut, Menu } from "lucide-react";
 import { useCart, useNav, useAuth } from "../context";
 
 export function Navbar() {
@@ -7,6 +7,7 @@ export function Navbar() {
   const { navigate, currentPage } = useNav();
   const { isLoggedIn, user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -14,6 +15,12 @@ export function Navbar() {
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setSearchOpen(false);
+    setQuery("");
+  }, [currentPage]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -30,6 +37,19 @@ export function Navbar() {
     setQuery("");
   };
 
+  const handleSearchButton = () => {
+    if (window.innerWidth < 768) {
+      navigate("search");
+      return;
+    }
+    setSearchOpen(true);
+  };
+
+  const go = (page: Parameters<typeof navigate>[0]) => {
+    setMenuOpen(false);
+    navigate(page);
+  };
+
   const isHomeTop = currentPage === "home" && !scrolled;
   const foregroundColor = isHomeTop ? "#fff8f5" : "#6b5948";
   const mutedColor = isHomeTop ? "rgba(255,248,245,0.82)" : "#7f756d";
@@ -41,17 +61,30 @@ export function Navbar() {
     <nav
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        backgroundColor: isHomeTop ? "transparent" : "rgba(255,248,245,0.9)",
-        borderBottom: isHomeTop ? "1px solid transparent" : "1px solid rgba(107,89,72,0.12)",
-        backdropFilter: isHomeTop ? "none" : "blur(18px)",
-        boxShadow: isHomeTop ? "none" : "0 10px 30px rgba(109,91,74,0.08)",
+        backgroundColor: menuOpen ? "#fff8f5" : isHomeTop ? "transparent" : "rgba(255,248,245,0.9)",
+        borderBottom: menuOpen || !isHomeTop ? "1px solid rgba(107,89,72,0.12)" : "1px solid transparent",
+        backdropFilter: menuOpen || !isHomeTop ? "blur(18px)" : "none",
+        boxShadow: menuOpen || !isHomeTop ? "0 10px 30px rgba(109,91,74,0.08)" : "none",
       }}
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 h-16 sm:h-20 flex items-center justify-between">
-        {/* Left nav links */}
-        <div className="flex gap-3 sm:gap-5 lg:gap-8 items-center">
+      <div className="mx-auto grid h-14 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-4 md:flex md:h-20 md:justify-between md:px-6 lg:px-10">
+        {/* Mobile hamburger */}
+        <div className="flex justify-start md:hidden">
           <button
-            onClick={() => navigate("shop")}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="flex h-10 w-10 items-center justify-center rounded-md transition-opacity hover:opacity-75"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            style={{ border: menuOpen ? "1px solid #d1c4bb" : "1px solid transparent" }}
+          >
+            {menuOpen ? <X size={22} color="#3d3530" /> : <Menu size={22} color={foregroundColor} />}
+          </button>
+        </div>
+
+        {/* Left nav links */}
+        <div className="hidden items-center gap-8 md:flex">
+          <button
+            onClick={() => go("shop")}
             className="transition-all"
             style={{
               fontFamily: "'Inter', sans-serif",
@@ -67,7 +100,7 @@ export function Navbar() {
             Shop
           </button>
           <button
-            onClick={() => navigate("gift")}
+            onClick={() => go("gift")}
             style={{
               fontFamily: "'Inter', sans-serif",
               fontWeight: 600,
@@ -83,7 +116,7 @@ export function Navbar() {
             <span className="sm:hidden">Gift</span>
           </button>
           <button
-            onClick={() => navigate("about")}
+            onClick={() => go("about")}
             style={{
               fontFamily: "'Inter', sans-serif",
               fontWeight: 600,
@@ -101,23 +134,23 @@ export function Navbar() {
 
         {/* Center logo */}
         <button
-          onClick={() => navigate("home")}
-          className="absolute left-1/2 -translate-x-1/2"
+          onClick={() => go("home")}
+          className="justify-self-center md:absolute md:left-1/2 md:-translate-x-1/2"
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 400,
-            fontSize: "clamp(26px, 5vw, 40px)",
-            color: foregroundColor,
-            letterSpacing: "-2px",
+            fontSize: "clamp(18px, 5.4vw, 40px)",
+            color: menuOpen ? "#3d3530" : foregroundColor,
+            letterSpacing: "-0.04em",
             lineHeight: 1,
-            textShadow: isHomeTop ? "0 1px 18px rgba(0,0,0,0.32)" : "none",
+            textShadow: isHomeTop && !menuOpen ? "0 1px 18px rgba(0,0,0,0.32)" : "none",
           }}
         >
           Lumos Aura
         </button>
 
         {/* Right icons */}
-        <div className="flex gap-3 sm:gap-5 items-center">
+        <div className="flex items-center justify-end gap-2 md:gap-5">
           {/* Expandable search */}
           <form
             onSubmit={handleSearch}
@@ -133,11 +166,11 @@ export function Navbar() {
           >
             <button
               type={searchOpen ? "submit" : "button"}
-              onClick={() => !searchOpen && setSearchOpen(true)}
+              onClick={() => !searchOpen && handleSearchButton()}
               className="shrink-0 hover:opacity-70 transition-opacity"
               title="Search"
             >
-              <Search size={16} color={searchOpen ? "#6b5948" : foregroundColor} />
+              <Search size={17} color={searchOpen || menuOpen ? "#6b5948" : foregroundColor} />
             </button>
             <input
               ref={inputRef}
@@ -170,24 +203,24 @@ export function Navbar() {
 
           {/* User icon — shows name if logged in */}
           {isLoggedIn ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <button
-                onClick={() => navigate(user?.role === "ADMIN" ? "admin" : "account")}
+                onClick={() => go(user?.role === "ADMIN" ? "admin" : "account")}
                 className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
                 title={user?.firstName || "My Account"}
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: isHomeTop ? "#fff8f5" : "#6b5948" }}
+                  style={{ backgroundColor: menuOpen ? "#6b5948" : isHomeTop ? "#fff8f5" : "#6b5948" }}
                 >
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, color: isHomeTop ? "#6b5948" : "white" }}>
+                  <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, color: menuOpen ? "white" : isHomeTop ? "#6b5948" : "white" }}>
                     {(user?.firstName?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
                   </span>
                 </div>
               </button>
               <button
                 onClick={logout}
-                className="hover:opacity-70 transition-opacity"
+                className="hidden transition-opacity hover:opacity-70 md:block"
                 title="Log Out"
               >
                 <LogOut size={15} color={mutedColor} />
@@ -195,21 +228,21 @@ export function Navbar() {
             </div>
           ) : (
             <button
-              onClick={() => navigate("signin")}
+              onClick={() => go("signin")}
               className="hover:opacity-70 transition-opacity"
               title="Sign In"
             >
-              <User size={16} color={foregroundColor} />
+              <User size={17} color={menuOpen ? "#6b5948" : foregroundColor} />
             </button>
           )}
 
           {/* Cart */}
           <button
-            onClick={() => navigate("cart")}
+            onClick={() => go("cart")}
             className="hover:opacity-70 transition-opacity relative"
             title="Cart"
           >
-            <ShoppingBag size={16} color={foregroundColor} />
+            <ShoppingBag size={17} color={menuOpen ? "#6b5948" : foregroundColor} />
             {itemCount > 0 && (
               <span
                 className="absolute -top-2 -right-2 rounded-full w-4 h-4 flex items-center justify-center"
@@ -227,6 +260,55 @@ export function Navbar() {
           </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="md:hidden" style={{ backgroundColor: "#fff8f5", borderTop: "1px solid rgba(107,89,72,0.12)" }}>
+          <div className="flex flex-col px-6 py-3">
+            {[
+              { label: "Shop", page: "shop" as const },
+              { label: "Gift", page: "gift" as const },
+              { label: "About", page: "about" as const },
+            ].map((item) => (
+              <button
+                key={item.page}
+                onClick={() => go(item.page)}
+                className="py-4 text-left"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 16,
+                  lineHeight: 0.5,
+                  color: currentPage === item.page ? "#6b5948" : "#1e1b18",
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-3 border-t border-[#eadfd8]">
+            <button
+              onClick={() => go(isLoggedIn ? (user?.role === "ADMIN" ? "admin" : "account") : "signin")}
+              className="px-5 py-4 text-left"
+              style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9b7660" }}
+            >
+              Tài khoản
+            </button>
+            <button
+              onClick={() => go("search")}
+              className="px-5 py-4 text-left"
+              style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9b7660" }}
+            >
+              Tìm kiếm
+            </button>
+            <button
+              onClick={() => go("cart")}
+              className="px-5 py-4 text-left"
+              style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9b7660" }}
+            >
+              Giỏ hàng
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

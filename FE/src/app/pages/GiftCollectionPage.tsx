@@ -444,10 +444,10 @@ export function GiftCollectionPage() {
 
       {/* ── Build your own ───────────────────────────────────────────────────── */}
       <div
-        className="mx-10 mb-16 rounded-2xl p-10 flex items-center justify-between"
+        className="mx-5 mb-16 flex flex-col gap-7 rounded-2xl p-7 sm:mx-10 sm:p-10 md:flex-row md:items-center md:justify-between"
         style={{ backgroundColor: "#3d3530" }}
       >
-        <div>
+        <div className="min-w-0 max-w-[620px]">
           <p
             style={{
               fontFamily: "'Inter', sans-serif",
@@ -465,9 +465,9 @@ export function GiftCollectionPage() {
             style={{
               fontFamily: "'Playfair Display', serif",
               fontWeight: 400,
-              fontSize: 36,
+              fontSize: "clamp(30px, 10vw, 36px)",
               color: "#fff8f5",
-              lineHeight: "44px",
+              lineHeight: "1.12",
               marginBottom: 8,
             }}
           >
@@ -487,7 +487,7 @@ export function GiftCollectionPage() {
         </div>
         <button
           onClick={() => navigate("shop")}
-          className="shrink-0 rounded-full px-8 py-4 hover:opacity-90 transition-opacity"
+          className="w-full shrink-0 rounded-full px-6 py-4 text-center transition-opacity hover:opacity-90 sm:w-auto sm:px-8"
           style={{
             backgroundColor: "#d1b89a",
             fontFamily: "'Inter', sans-serif",
