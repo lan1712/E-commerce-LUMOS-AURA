@@ -2,6 +2,7 @@ package com.example.be.order.api;
 
 import com.example.be.order.domain.Order;
 import com.example.be.order.domain.OrderRepository;
+import com.example.be.order.internal.OrderService;
 import com.example.be.order.internal.vnpay.VNPayConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -21,15 +22,18 @@ import java.util.Map;
 public class PaymentController {
 
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
     private final VNPayConfig vnPayConfig;
     private final String frontendUrl;
 
     public PaymentController(
             OrderRepository orderRepository,
+            OrderService orderService,
             VNPayConfig vnPayConfig,
             @Value("${frontend.url:http://localhost:5173}") String frontendUrl
     ) {
         this.orderRepository = orderRepository;
+        this.orderService = orderService;
         this.vnPayConfig = vnPayConfig;
         this.frontendUrl = frontendUrl.replaceAll("/+$", "");
     }
@@ -75,9 +79,7 @@ public class PaymentController {
             if ("00".equals(request.getParameter("vnp_ResponseCode"))) {
                 // Success
                 if (order != null && "PENDING".equals(order.getStatus())) {
-                    order.setStatus("PAID");
-                    order.setTransactionId(request.getParameter("vnp_TransactionNo"));
-                        orderRepository.save(order);
+                    orderService.markOrderPaid(orderNumber, request.getParameter("vnp_TransactionNo"));
                 }
                 return ResponseEntity.status(HttpStatus.FOUND)
                         .location(URI.create(vnpayReturnUrl + "?status=success&orderNumber=" + orderNumber))
@@ -139,9 +141,7 @@ public class PaymentController {
             if (order != null) {
                 if ("PENDING".equals(order.getStatus())) {
                     if ("00".equals(responseCode)) {
-                        order.setStatus("PAID");
-                        order.setTransactionId(request.getParameter("vnp_TransactionNo"));
-                        orderRepository.save(order);
+                        orderService.markOrderPaid(orderNumber, request.getParameter("vnp_TransactionNo"));
                     } else {
                         // Failed, keep PENDING
                     }

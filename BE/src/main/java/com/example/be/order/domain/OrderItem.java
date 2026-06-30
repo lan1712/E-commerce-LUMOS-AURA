@@ -1,6 +1,7 @@
 package com.example.be.order.domain;
 
 import com.example.be.product.domain.Product;
+import com.example.be.product.domain.ProductVariant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,6 +33,10 @@ public class OrderItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
 
     @Column(name = "product_name", nullable = false, length = 200)
     private String productName;

@@ -116,6 +116,8 @@ public class OrderService {
             item.setOrder(order);
             item.setProduct(product);
             ProductVariant variant = resolveVariant(product, itemReq.variantId());
+            item.setVariant(variant);
+            validateStock(variant, itemReq.quantity());
             item.setProductName(variant != null && variant.getSizeLabel() != null
                     ? product.getName() + " - " + variant.getSizeLabel()
                     : product.getName());
@@ -148,6 +150,10 @@ public class OrderService {
         order.setSubtotal(subtotal);
         order.setDiscount(discount);
         order.setTotal(subtotal.subtract(discount).setScale(2, RoundingMode.HALF_UP));
+
+        if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+            deductStock(order);
+        }
 
         Order saved = orderRepository.save(order);
 
@@ -215,6 +221,7 @@ public class OrderService {
         }
         
         if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+            deductStock(order);
             order.setPaymentUrl(null);
             order.setStatus("CONFIRMED");
         } else {
@@ -231,6 +238,22 @@ public class OrderService {
         
         orderRepository.save(order);
         return toDTO(order);
+    }
+
+    @Transactional
+    public boolean markOrderPaid(String orderNumber, String transactionId) {
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderNumber));
+
+        if (!"PENDING".equalsIgnoreCase(order.getStatus())) {
+            return false;
+        }
+
+        deductStock(order);
+        order.setStatus("PAID");
+        order.setTransactionId(transactionId);
+        orderRepository.save(order);
+        return true;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -278,6 +301,31 @@ public class OrderService {
             return !now.isBefore(start) && now.isBefore(end);
         } catch (RuntimeException ignored) {
             return false;
+        }
+    }
+
+    private void validateStock(ProductVariant variant, int quantity) {
+        if (variant == null) {
+            return;
+        }
+
+        int currentStock = variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
+        if (currentStock < quantity) {
+            throw new IllegalStateException("Not enough stock for " + variant.getSku()
+                    + ". Available: " + currentStock + ", requested: " + quantity);
+        }
+    }
+
+    private void deductStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            ProductVariant variant = item.getVariant();
+            if (variant == null) {
+                variant = resolveVariant(item.getProduct(), null);
+                item.setVariant(variant);
+            }
+
+            validateStock(variant, item.getQuantity());
+            variant.setStockQuantity(variant.getStockQuantity() - item.getQuantity());
         }
     }
 

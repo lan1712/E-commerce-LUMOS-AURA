@@ -2,6 +2,7 @@ package com.example.be.order.api;
 
 import com.example.be.order.domain.Order;
 import com.example.be.order.domain.OrderRepository;
+import com.example.be.order.internal.OrderService;
 import com.example.be.order.internal.momo.MomoConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,12 @@ import java.util.Optional;
 public class MomoPaymentController {
 
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
     private final MomoConfig momoConfig;
 
-    public MomoPaymentController(OrderRepository orderRepository, MomoConfig momoConfig) {
+    public MomoPaymentController(OrderRepository orderRepository, OrderService orderService, MomoConfig momoConfig) {
         this.orderRepository = orderRepository;
+        this.orderService = orderService;
         this.momoConfig = momoConfig;
     }
 
@@ -45,15 +48,12 @@ public class MomoPaymentController {
                 Order order = orderOpt.get();
                 if ("PENDING".equalsIgnoreCase(order.getStatus())) {
                     if (resultCode == 0) {
-                        order.setStatus("PAID");
-                        // We can set the transId if we want
-                        if (payload.containsKey("transId")) {
-                            order.setTransactionId(String.valueOf(payload.get("transId")));
-                        }
+                        String transactionId = payload.containsKey("transId") ? String.valueOf(payload.get("transId")) : null;
+                        orderService.markOrderPaid(orderNumber, transactionId);
                     } else {
                         order.setStatus("CANCELLED");
+                        orderRepository.save(order);
                     }
-                    orderRepository.save(order);
                 }
             }
             return ResponseEntity.noContent().build();
