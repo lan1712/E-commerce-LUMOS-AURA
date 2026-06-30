@@ -25,6 +25,9 @@ public record OrderDTO(
         String paymentMethod,
         String transactionId,
         String paymentUrl,
+        String cancellationReason,
+        String refundStatus,
+        LocalDateTime cancelledAt,
         List<OrderItemDTO> items,
         LocalDateTime createdAt
 ) {}

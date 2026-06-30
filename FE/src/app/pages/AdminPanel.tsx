@@ -1140,7 +1140,7 @@ function ProductsSection() {
 function OrdersSection() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"All" | "PENDING" | "PAID" | "PROCESSING" | "COMPLETED">("All");
+  const [tab, setTab] = useState<"All" | "PENDING" | "PAID" | "PROCESSING" | "COMPLETED" | "CANCELLED">("All");
 
   useEffect(() => {
     fetchOrders();
@@ -1160,7 +1160,12 @@ function OrdersSection() {
   };
 
   const filtered = tab === "All" ? orders : orders.filter(o => o.status === tab);
-  const statusColor = (s: string): "yellow" | "gray" | "green" | "blue" => ({ PROCESSING: "yellow", PENDING: "gray", COMPLETED: "green" }[s] as "yellow" | "gray" | "green") || "gray";
+  const statusColor = (s: string): "yellow" | "gray" | "green" | "blue" | "red" => ({
+    PROCESSING: "yellow",
+    PENDING: "gray",
+    COMPLETED: "green",
+    CANCELLED: "red",
+  }[s] as "yellow" | "gray" | "green" | "red") || "gray";
 
   return (
     <div className="flex flex-col gap-6">
@@ -1177,7 +1182,7 @@ function OrdersSection() {
       <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
         {/* Tabs */}
         <div className="flex gap-0 overflow-x-auto px-4 pt-4 sm:px-6" style={{ borderBottom: "1px solid #d1c4bb" }}>
-          {(["All", "PENDING", "PAID", "PROCESSING", "COMPLETED"] as const).map((t) => (
+          {(["All", "PENDING", "PAID", "PROCESSING", "COMPLETED", "CANCELLED"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className="px-4 pb-3 mr-2 text-sm"
               style={{ ...F, fontWeight: tab === t ? 600 : 400, color: tab === t ? "#1e1b18" : "#4e453e",
@@ -1211,7 +1216,7 @@ function OrdersSection() {
                 </td>
                 <td className="px-6 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{formatPrice(Number(o.total))}</td>
                 <td className="px-6 py-4">
-                  <select 
+                  <select
                     value={o.status}
                     onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
                     className="border text-xs rounded px-2 py-1 outline-none"
@@ -1223,8 +1228,18 @@ function OrdersSection() {
                     <option value="COMPLETED">Completed</option>
                     <option value="CANCELLED">Cancelled</option>
                   </select>
+                  {o.cancellationReason && (
+                    <p className="mt-2 max-w-[220px] text-xs text-[#9b3f31]">
+                      Reason: {o.cancellationReason}
+                    </p>
+                  )}
                 </td>
-                <td className="px-6 py-4"><Badge label={o.payment} color={o.payment === "Paid" ? "green" : "yellow"} /></td>
+                <td className="px-6 py-4">
+                  <Badge label={o.payment} color={o.payment === "Paid" ? "green" : o.payment === "Cancelled" ? "red" : "yellow"} />
+                  {o.refundStatus && o.refundStatus !== "NOT_REQUIRED" && (
+                    <p className="mt-2 text-xs font-semibold text-[#9b5c3d]">Refund: {o.refundStatus}</p>
+                  )}
+                </td>
                 <td className="px-6 py-4"><button className="hover:opacity-70"><Eye size={16} color="#4e453e" /></button></td>
               </tr>
             ))}

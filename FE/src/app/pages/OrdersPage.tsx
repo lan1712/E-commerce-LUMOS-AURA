@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNav, useAuth } from "../context";
 import { Footer } from "../components/Footer";
-import { Check, ShoppingBag } from "lucide-react";
+import { Check, ShoppingBag, XCircle } from "lucide-react";
 import { ordersApi } from "../api";
 import { formatPrice } from "../data";
 
@@ -30,6 +30,9 @@ interface ApiOrder {
   createdAt: string;
   paymentMethod?: string;
   paymentUrl?: string;
+  cancellationReason?: string;
+  refundStatus?: string;
+  cancelledAt?: string;
   items: Array<{
     id: number;
     productSlug: string;
@@ -49,8 +52,21 @@ type DisplayOrder = {
   trackingStep: number;
   paymentMethod?: string;
   paymentUrl?: string;
+  cancellationReason?: string;
+  refundStatus?: string;
+  cancelledAt?: string;
   items: Array<{ name: string; desc: string; price: number; qty: number; image: string }>;
 };
+
+const cancellationReasons = [
+  "Changed my mind",
+  "Wrong item or quantity",
+  "Wrong shipping address",
+  "Found a better option",
+  "Payment issue",
+  "Delivery time is not suitable",
+  "Other",
+];
 
 function normalizeOrderStatus(status?: string) {
   const value = (status || "PENDING").toUpperCase();
@@ -82,7 +98,14 @@ function mapOrder(o: ApiOrder): DisplayOrder {
     })),
     paymentMethod: o.paymentMethod,
     paymentUrl: o.paymentUrl,
+    cancellationReason: o.cancellationReason,
+    refundStatus: o.refundStatus,
+    cancelledAt: o.cancelledAt,
   };
+}
+
+function canCancelOrder(order: DisplayOrder) {
+  return ["Pending", "Paid", "Confirmed"].includes(order.status);
 }
 
 export function OrdersPage() {
@@ -95,6 +118,10 @@ export function OrdersPage() {
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState("");
   const [retryNotice, setRetryNotice] = useState("");
+  const [cancelReason, setCancelReason] = useState(cancellationReasons[0]);
+  const [customCancelReason, setCustomCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -110,7 +137,7 @@ export function OrdersPage() {
       .finally(() => setLoading(false));
   }, [isLoggedIn]);
 
-  const displayOrders = isLoggedIn ? orders.filter(o => o.status !== "Cancelled") : [];
+  const displayOrders = isLoggedIn ? orders : [];
   const displaySelected = selectedOrder ? (displayOrders.find(o => o.id === selectedOrder.id) || displayOrders[0]) : (displayOrders.length > 0 ? displayOrders[0] : null);
 
   useEffect(() => {
@@ -118,6 +145,9 @@ export function OrdersPage() {
       setRetryMethod(displaySelected.paymentMethod || "VNPAY");
       setRetryError("");
       setRetryNotice("");
+      setCancelError("");
+      setCancelReason(cancellationReasons[0]);
+      setCustomCancelReason("");
     }
   }, [displaySelected]);
 
@@ -144,6 +174,29 @@ export function OrdersPage() {
       setRetryError(error instanceof Error ? error.message : "Could not retry payment.");
     } finally {
       setRetrying(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!displaySelected || !canCancelOrder(displaySelected)) return;
+
+    const reason = cancelReason === "Other" ? customCancelReason.trim() : cancelReason;
+    if (!reason) {
+      setCancelError("Please choose or enter a cancellation reason.");
+      return;
+    }
+
+    setCancelling(true);
+    setCancelError("");
+    try {
+      const updated = await ordersApi.cancel(displaySelected.id, reason);
+      const mapped = mapOrder(updated);
+      setOrders((current) => current.map((order) => order.id === displaySelected.id ? mapped : order));
+      setSelectedOrder(mapped);
+    } catch (error) {
+      setCancelError(error instanceof Error ? error.message : "Could not cancel this order.");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -280,6 +333,29 @@ export function OrdersPage() {
                     </div>
                   </div>
 
+                  {selectedOrder.status === "Cancelled" && (
+                    <div className="mb-6 rounded-2xl p-5" style={{ backgroundColor: "#fff3f0", border: "1px solid #efc8c0" }}>
+                      <div className="flex items-start gap-3">
+                        <XCircle size={20} color="#991b1b" className="mt-0.5 shrink-0" />
+                        <div>
+                          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13, color: "#991b1b" }}>
+                            Order cancelled
+                          </p>
+                          {selectedOrder.cancellationReason && (
+                            <p className="mt-1" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#7f4c43" }}>
+                              Reason: {selectedOrder.cancellationReason}
+                            </p>
+                          )}
+                          {selectedOrder.refundStatus && selectedOrder.refundStatus !== "NOT_REQUIRED" && (
+                            <p className="mt-1" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#7f4c43" }}>
+                              Refund status: {selectedOrder.refundStatus === "PENDING" ? "Pending refund review" : selectedOrder.refundStatus}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Items */}
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "1px", color: "#7f756d", textTransform: "uppercase", marginBottom: 16 }}>
                     Items In This Order
@@ -301,6 +377,52 @@ export function OrdersPage() {
                       </div>
                     ))}
                   </div>
+
+                  {canCancelOrder(selectedOrder) && (
+                    <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: "#fffaf7", border: "1px solid rgba(209,196,187,0.65)" }}>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: "1px", color: "#7f756d", textTransform: "uppercase", marginBottom: 8 }}>
+                        Cancel Order
+                      </p>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#7f756d", marginBottom: 14 }}>
+                        You can cancel before the admin starts preparing or shipping this order. Prepaid orders will be marked for refund review.
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                        <select
+                          value={cancelReason}
+                          onChange={(event) => setCancelReason(event.target.value)}
+                          className="h-11 rounded-md border border-[#d1c4bb] bg-white px-3 text-sm outline-none"
+                          style={{ fontFamily: "'Inter', sans-serif", color: "#4e453e" }}
+                        >
+                          {cancellationReasons.map((reason) => (
+                            <option key={reason} value={reason}>{reason}</option>
+                          ))}
+                        </select>
+                        {cancelReason === "Other" && (
+                          <input
+                            value={customCancelReason}
+                            onChange={(event) => setCustomCancelReason(event.target.value)}
+                            placeholder="Tell us the reason..."
+                            maxLength={500}
+                            className="h-11 rounded-md border border-[#d1c4bb] bg-white px-3 text-sm outline-none"
+                            style={{ fontFamily: "'Inter', sans-serif", color: "#4e453e" }}
+                          />
+                        )}
+                      </div>
+                      {cancelError && (
+                        <p className="mt-3" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "#c0392b" }}>
+                          {cancelError}
+                        </p>
+                      )}
+                      <button
+                        onClick={handleCancelOrder}
+                        disabled={cancelling}
+                        className="mt-4 rounded-full px-6 py-3 transition-opacity hover:opacity-90 disabled:opacity-60"
+                        style={{ border: "1px solid #991b1b", backgroundColor: "white", fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13, color: "#991b1b" }}
+                      >
+                        {cancelling ? "Cancelling..." : "Cancel this order"}
+                      </button>
+                    </div>
+                  )}
 
                   {selectedOrder.status === "Pending" && (
                     <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: "#fff8f5", border: "1px solid rgba(209,196,187,0.55)" }}>

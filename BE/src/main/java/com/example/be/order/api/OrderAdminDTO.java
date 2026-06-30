@@ -12,6 +12,8 @@ public record OrderAdminDTO(
     BigDecimal total,
     String status,
     String payment,
+    String cancellationReason,
+    String refundStatus,
     LocalDateTime date
 ) {
     public static OrderAdminDTO from(Order order) {
@@ -33,6 +35,8 @@ public record OrderAdminDTO(
             order.getTotal(),
             order.getStatus(),
             paymentStatus,
+            order.getCancellationReason(),
+            order.getRefundStatus(),
             order.getCreatedAt()
         );
     }

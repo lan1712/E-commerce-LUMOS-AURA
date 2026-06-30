@@ -127,6 +127,9 @@ export const ordersApi = {
     }
     return request(url, { method: "POST" });
   },
+
+  cancel: (orderNumber: string, reason: string) =>
+    request(`/orders/${orderNumber}/cancel`, { method: "POST", body: JSON.stringify({ reason }) }),
 };
 
 // ── Wishlist ──────────────────────────────────────────────────────────────────

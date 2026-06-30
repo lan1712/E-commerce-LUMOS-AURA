@@ -2,6 +2,7 @@ package com.example.be.order.internal;
 
 import com.example.be.auth.domain.User;
 import com.example.be.auth.domain.UserRepository;
+import com.example.be.order.api.CancelOrderRequest;
 import com.example.be.order.api.CreateOrderRequest;
 import com.example.be.order.api.OrderDTO;
 import com.example.be.order.api.OrderItemDTO;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 public class OrderService {
     private static final BigDecimal OPENING_SALE_MULTIPLIER = new BigDecimal("0.70");
     private static final long OPENING_SALE_DAYS = 15;
+    private static final List<String> CUSTOMER_CANCELLABLE_STATUSES = List.of("PENDING", "PAID", "CONFIRMED");
 
     @Value("${opening-sale.start-date:2026-06-28T22:47:54+07:00}")
     private String openingSaleStartDate;
@@ -241,6 +243,33 @@ public class OrderService {
     }
 
     @Transactional
+    public OrderDTO cancelOrder(String orderNumber, CancelOrderRequest request, String userEmail) {
+        Order order = orderRepository.findByOrderNumberAndUserEmail(orderNumber, userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderNumber));
+
+        String currentStatus = order.getStatus() != null ? order.getStatus().toUpperCase() : "PENDING";
+        if (!CUSTOMER_CANCELLABLE_STATUSES.contains(currentStatus)) {
+            throw new IllegalStateException("This order can no longer be cancelled because it is already being prepared or shipped.");
+        }
+
+        if ("CANCELLED".equals(currentStatus)) {
+            return toDTO(order);
+        }
+
+        if (stockWasDeducted(order)) {
+            restoreStock(order);
+        }
+
+        order.setStatus("CANCELLED");
+        order.setCancellationReason(request.reason().trim());
+        order.setCancelledAt(LocalDateTime.now());
+        order.setPaymentUrl(null);
+        order.setRefundStatus(needsRefund(order) ? "PENDING" : "NOT_REQUIRED");
+        orderRepository.save(order);
+        return toDTO(order);
+    }
+
+    @Transactional
     public boolean markOrderPaid(String orderNumber, String transactionId) {
         Order order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderNumber));
@@ -329,6 +358,34 @@ public class OrderService {
         }
     }
 
+    private void restoreStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            ProductVariant variant = item.getVariant();
+            if (variant == null) {
+                variant = resolveVariant(item.getProduct(), null);
+                item.setVariant(variant);
+            }
+
+            if (variant != null) {
+                int currentStock = variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
+                variant.setStockQuantity(currentStock + item.getQuantity());
+            }
+        }
+    }
+
+    private boolean stockWasDeducted(Order order) {
+        String status = order.getStatus() != null ? order.getStatus().toUpperCase() : "";
+        return List.of("PAID", "CONFIRMED").contains(status);
+    }
+
+    private boolean needsRefund(Order order) {
+        String paymentMethod = order.getPaymentMethod() != null ? order.getPaymentMethod().toUpperCase() : "";
+        String status = order.getStatus() != null ? order.getStatus().toUpperCase() : "";
+        boolean paidOnline = List.of("VNPAY", "MOMO").contains(paymentMethod)
+                && (order.getTransactionId() != null || "PAID".equals(status));
+        return paidOnline;
+    }
+
     private OrderDTO toDTO(Order o) {
         List<OrderItemDTO> itemDTOs = o.getItems().stream()
                 .map(item -> new OrderItemDTO(
@@ -360,6 +417,9 @@ public class OrderService {
                 o.getPaymentMethod(),
                 o.getTransactionId(),
                 o.getPaymentUrl(),
+                o.getCancellationReason(),
+                o.getRefundStatus(),
+                o.getCancelledAt(),
                 itemDTOs,
                 o.getCreatedAt()
         );

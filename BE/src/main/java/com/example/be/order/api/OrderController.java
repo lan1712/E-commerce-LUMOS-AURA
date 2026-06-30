@@ -70,4 +70,12 @@ public class OrderController {
             Principal principal) {
         return ResponseEntity.ok(orderService.retryPayment(orderNumber, paymentMethod, principal.getName()));
     }
+
+    @PostMapping("/{orderNumber}/cancel")
+    public ResponseEntity<OrderDTO> cancelOrder(
+            @PathVariable String orderNumber,
+            @Valid @RequestBody CancelOrderRequest request,
+            Principal principal) {
+        return ResponseEntity.ok(orderService.cancelOrder(orderNumber, request, principal.getName()));
+    }
 }
