@@ -24,5 +24,6 @@ public record ProductDTO(
         String burnTime,
         Integer burnHours,
         String size,
+        Boolean active,
         List<ProductVariantDTO> variants
 ) {}

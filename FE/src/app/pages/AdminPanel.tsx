@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { dashboardApi, productsApi, usersApi } from "../api";
-import { formatPrice } from "../data";
+import { formatPrice, getProductStock, getStockMessage } from "../data";
 import imgAdminAvatar from "../../assets/admin/admin-avatar.png";
 import { useAuth, useNav } from "../context";
 import {
@@ -51,6 +51,14 @@ function formatAdminMoney(value: unknown) {
   if (Number.isNaN(numeric)) return text.replaceAll("$", "");
 
   return formatPrice(isCompact ? numeric * 1000 : numeric);
+}
+
+function getAdminProductId(product: any) {
+  return String(product.dbId ?? product.id ?? product.slug);
+}
+
+function getAdminProductStock(product: any) {
+  return getProductStock(product);
 }
 
 type AdminNotification = {
@@ -880,6 +888,7 @@ function ProductEditor({
 }
 
 function ProductsSection() {
+  const { navigate } = useNav();
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -887,6 +896,7 @@ function ProductsSection() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProducts();
@@ -918,7 +928,8 @@ function ProductsSection() {
       if (term && !searchable.includes(term)) return false;
       if (categoryFilter !== "all" && product.category !== categoryFilter) return false;
       if (collectionFilter !== "all" && !(product.tags ?? []).includes(collectionFilter)) return false;
-      if (statusFilter === "inactive") return false;
+      if (statusFilter === "active" && product.active === false) return false;
+      if (statusFilter === "inactive" && product.active !== false) return false;
       return true;
     });
   }, [categoryFilter, collectionFilter, products, search, statusFilter]);
@@ -931,6 +942,27 @@ function ProductsSection() {
   };
 
   const hasFilters = Boolean(search || categoryFilter !== "all" || collectionFilter !== "all" || statusFilter !== "all");
+  const selectedProductSet = useMemo(() => new Set(selectedProductIds), [selectedProductIds]);
+  const selectedCount = selectedProductIds.length;
+  const allVisibleSelected = filteredProducts.length > 0
+    && filteredProducts.every((product) => selectedProductSet.has(getAdminProductId(product)));
+
+  const toggleProductSelection = (product: any) => {
+    const id = getAdminProductId(product);
+    setSelectedProductIds((current) => current.includes(id)
+      ? current.filter((item) => item !== id)
+      : [...current, id]);
+  };
+
+  const toggleVisibleProducts = () => {
+    const visibleIds = filteredProducts.map(getAdminProductId);
+    setSelectedProductIds((current) => {
+      if (visibleIds.every((id) => current.includes(id))) {
+        return current.filter((id) => !visibleIds.includes(id));
+      }
+      return Array.from(new Set([...current, ...visibleIds]));
+    });
+  };
 
   const openEditor = (product?: any) => {
     setEditingProduct(product ?? null);
@@ -996,23 +1028,51 @@ function ProductsSection() {
             Reset
           </button>
         </div>
+        {selectedCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2d8d1] bg-[#fffaf7] px-5 py-3">
+            <p className="text-sm font-semibold text-[#5c4837]" style={F}>{selectedCount} product{selectedCount > 1 ? "s" : ""} selected</p>
+            <button onClick={() => setSelectedProductIds([])} className="text-sm font-semibold text-[#80664f]" style={F}>Clear selection</button>
+          </div>
+        )}
         {/* Table */}
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[980px]">
+        <table className="w-full min-w-[1080px]">
           <thead>
             <tr style={{ backgroundColor: "#fbf2ed", borderBottom: "1px solid #d1c4bb" }}>
-              <th className="w-12 px-6 py-4"><div className="w-4 h-4 rounded" style={{ border: "1px solid #d1c4bb", backgroundColor: "#f5ece7" }} /></th>
-              {["PRODUCT", "CATEGORY", "COLLECTIONS", "PRICE", "STATUS", "ACTIONS"].map((h, i) => (
-                <th key={h} className={`px-5 py-4 text-left ${i === 5 ? "text-right" : ""}`}
+              <th className="w-12 px-6 py-4">
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={toggleVisibleProducts}
+                  aria-label="Select visible products"
+                  className="h-4 w-4 rounded border-[#d1c4bb] accent-[#6b5948]"
+                />
+              </th>
+              {["PRODUCT", "CATEGORY", "COLLECTIONS", "PRICE", "STOCK", "STATUS", "ACTIONS"].map((h, i) => (
+                <th key={h} className={`px-5 py-4 text-left ${i === 6 ? "text-right" : ""}`}
                   style={{ ...F, fontWeight: 700, fontSize: 11, letterSpacing: "0.6px", color: "#4e453e" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((p, i) => (
-              <tr key={p.slug} style={{ borderTop: i > 0 ? "1px solid #d1c4bb" : "none" }}
+            {filteredProducts.map((p, i) => {
+              const productId = getAdminProductId(p);
+              const stock = getAdminProductStock(p);
+              const isSelected = selectedProductSet.has(productId);
+              const lowStock = stock !== null && stock <= 5;
+
+              return (
+              <tr key={p.slug} style={{ borderTop: i > 0 ? "1px solid #d1c4bb" : "none", backgroundColor: isSelected ? "rgba(128,102,79,0.06)" : undefined }}
                 className="hover:bg-[rgba(233,225,220,0.15)] transition-colors">
-                <td className="px-6 py-4"><div className="w-4 h-4 rounded" style={{ border: "1px solid #d1c4bb", backgroundColor: "#f5ece7" }} /></td>
+                <td className="px-6 py-4">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleProductSelection(p)}
+                    aria-label={`Select ${p.name}`}
+                    className="h-4 w-4 rounded border-[#d1c4bb] accent-[#6b5948]"
+                  />
+                </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded flex items-center justify-center overflow-hidden" style={{ backgroundColor: "#efe6e2" }}>
@@ -1034,19 +1094,32 @@ function ProductsSection() {
                   </div>
                 </td>
                 <td className="px-5 py-4 whitespace-nowrap" style={{ ...F, fontWeight: 500, fontSize: 13, color: "#1e1b18" }}>{formatPrice(Number(p.price))}</td>
-                <td className="px-5 py-4"><Badge label="Active" color="green" /></td>
+                <td className="px-5 py-4 whitespace-nowrap">
+                  <span
+                    className="rounded-full px-3 py-1 text-xs font-semibold"
+                    style={{
+                      ...F,
+                      backgroundColor: stock !== null && stock <= 0 ? "#fee2e2" : lowStock ? "#fff3df" : "#edf8ef",
+                      color: stock !== null && stock <= 0 ? "#b91c1c" : lowStock ? "#9b5c3d" : "#14723f",
+                    }}
+                  >
+                    {getStockMessage(stock)}
+                  </span>
+                </td>
+                <td className="px-5 py-4"><Badge label={p.active === false ? "Inactive" : "Active"} color={p.active === false ? "gray" : "green"} /></td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-2 justify-end">
-                    <button className="p-1.5 rounded hover:bg-[#f5ece7] transition-colors" title="View product"><Eye size={14} color="#4e453e" /></button>
+                    <button onClick={() => navigate("product", p.slug)} className="p-1.5 rounded hover:bg-[#f5ece7] transition-colors" title="View product"><Eye size={14} color="#4e453e" /></button>
                     <button onClick={() => openEditor(p)} className="p-1.5 rounded hover:bg-[#f5ece7] transition-colors"><Pencil size={14} color="#4e453e" /></button>
                     <button onClick={() => handleDelete(p)} className="p-1.5 rounded hover:bg-[#fee2e2] transition-colors"><Trash2 size={14} color="#4e453e" /></button>
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {filteredProducts.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500" style={F}>No products match the selected filters.</td>
+                <td colSpan={8} className="px-6 py-12 text-center text-gray-500" style={F}>No products match the selected filters.</td>
               </tr>
             )}
           </tbody>

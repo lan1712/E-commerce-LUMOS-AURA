@@ -150,6 +150,7 @@ public class ProductService {
                 p.getBurnTime(),
                 p.getBurnHours(),
                 p.getSize(),
+                p.getActive(),
                 p.getVariants().stream()
                         .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
                         .sorted(Comparator.comparing(variant -> variant.getWeightGrams() == null ? Integer.MAX_VALUE : variant.getWeightGrams()))
