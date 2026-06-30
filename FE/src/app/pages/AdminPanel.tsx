@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { productsApi } from "../api";
+import { dashboardApi, productsApi, usersApi } from "../api";
 import { formatPrice } from "../data";
 import imgAdminAvatar from "../../assets/admin/admin-avatar.png";
 import { useAuth, useNav } from "../context";
@@ -30,10 +30,24 @@ const PF = { fontFamily: "'Playfair Display', serif" };
 function formatAdminMoney(value: unknown) {
   if (typeof value === "number") return formatPrice(value);
   const text = String(value ?? "");
-  if (!text.includes("$")) return text;
+  const normalized = text
+    .replace(/₫/g, "VND")
+    .replace(/\s*đ\b/gi, " VND")
+    .replace(/\s+d\b/gi, " VND")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  const isCompact = /k\s*$/i.test(text.trim());
-  const numeric = Number(text.replace(/[$,\s]|k/gi, ""));
+  const compactMatch = normalized.match(/^([\d.,]+)\s*(triệu|tỷ|k)\s*(?:VND)?$/i);
+  if (compactMatch) {
+    const unit = compactMatch[2].toLowerCase();
+    const suffix = unit === "k" ? "K" : unit;
+    return `${compactMatch[1]} ${suffix} VND`;
+  }
+
+  if (!normalized.includes("$")) return normalized;
+
+  const isCompact = /k\s*$/i.test(normalized);
+  const numeric = Number(normalized.replace(/[$,\s]|k/gi, ""));
   if (Number.isNaN(numeric)) return text.replaceAll("$", "");
 
   return formatPrice(isCompact ? numeric * 1000 : numeric);
@@ -48,40 +62,51 @@ type AdminNotification = {
   kind: "order" | "stock" | "user" | "system";
 };
 
-const initialNotifications: AdminNotification[] = [
-  {
-    id: "notif-order-0922",
-    title: "New Order #ORD-0922",
-    message: "Eleanor Vance placed a new order.",
-    time: "5 mins ago",
-    read: false,
-    kind: "order",
-  },
-  {
-    id: "notif-stock-moonlit",
-    title: "Low Stock Alert",
-    message: "Moonlit Vanilla 220g is running low (3 left).",
-    time: "2 hours ago",
-    read: false,
-    kind: "stock",
-  },
-  {
-    id: "notif-user-sarah",
-    title: "New User Registered",
-    message: "Sarah Connor just created an account.",
-    time: "1 day ago",
-    read: true,
-    kind: "user",
-  },
-  {
-    id: "notif-sale",
-    title: "Opening Sale Active",
-    message: "The 30% opening campaign is currently running.",
-    time: "Today",
-    read: true,
-    kind: "system",
-  },
-];
+const initialNotifications: AdminNotification[] = [];
+
+function buildNotificationsFromApi(dashboardStats: any, products: any[], users: any[]): AdminNotification[] {
+  const orderNotifications = (dashboardStats?.recentOrders ?? []).slice(0, 3).map((order: any, index: number) => ({
+    id: `order-${order.id}`,
+    title: `New Order #${order.id}`,
+    message: `${order.customer || "A customer"} placed an order for ${formatAdminMoney(order.amount)}.`,
+    time: order.date || "Recently",
+    read: index > 0,
+    kind: "order" as const,
+  }));
+
+  const lowStockNotifications = products
+    .flatMap((product: any) => {
+      const variants = product.variants?.length
+        ? product.variants
+        : [{ sizeLabel: product.size, stockQuantity: product.stockQuantity ?? product.stock }];
+
+      return variants
+        .filter((variant: any) => typeof variant.stockQuantity === "number" && variant.stockQuantity > 0 && variant.stockQuantity <= 5)
+        .map((variant: any) => ({
+          id: `stock-${product.slug ?? product.id}-${variant.id ?? variant.sizeLabel ?? "default"}`,
+          title: "Low Stock Alert",
+          message: `${product.name}${variant.sizeLabel ? ` ${variant.sizeLabel}` : ""} is running low (${variant.stockQuantity} left).`,
+          time: "Live inventory",
+          read: false,
+          kind: "stock" as const,
+        }));
+    })
+    .slice(0, 3);
+
+  const latestUsers = [...(users ?? [])]
+    .sort((a: any, b: any) => Number(b.id ?? 0) - Number(a.id ?? 0))
+    .slice(0, 2)
+    .map((user: any, index: number) => ({
+      id: `user-${user.id ?? user.email}`,
+      title: "New User Registered",
+      message: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "A user"} just created an account.`,
+      time: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Recently",
+      read: index > 0,
+      kind: "user" as const,
+    }));
+
+  return [...orderNotifications, ...lowStockNotifications, ...latestUsers].slice(0, 8);
+}
 
 function Badge({ label, color }: { label: string; color: "green" | "yellow" | "gray" | "red" | "brown" | "blue" }) {
   const map = {
@@ -1684,6 +1709,27 @@ function PoliciesSection() {
 export function AdminPanel() {
   const [section, setSection] = useState<AdminSection>("dashboard");
   const [notifications, setNotifications] = useState<AdminNotification[]>(initialNotifications);
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.allSettled([
+      dashboardApi.getStats(),
+      productsApi.list(),
+      usersApi.list(),
+    ]).then((results) => {
+      if (!active) return;
+
+      const dashboardStats = results[0].status === "fulfilled" ? results[0].value : null;
+      const products = results[1].status === "fulfilled" ? results[1].value : [];
+      const users = results[2].status === "fulfilled" ? results[2].value : [];
+      setNotifications(buildNotificationsFromApi(dashboardStats, products, users));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const searchPlaceholders: Record<AdminSection, string> = {
     dashboard: "Search dashboard...",

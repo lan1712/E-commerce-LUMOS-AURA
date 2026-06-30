@@ -93,14 +93,12 @@ public class DashboardService {
         List<Order> recent = orderRepository.findTop5ByOrderByCreatedAtDesc();
         List<DashboardStatsResponse.RecentOrderDTO> recentOrders = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-        currencyFormatter.setMaximumFractionDigits(0);
         for (Order o : recent) {
             recentOrders.add(new DashboardStatsResponse.RecentOrderDTO(
                 o.getOrderNumber(),
                 o.getShipName(),
                 o.getCreatedAt().format(formatter),
-                currencyFormatter.format(o.getTotal()),
+                formatVnd(o.getTotal()),
                 o.getStatus()
             ));
         }
@@ -141,11 +139,17 @@ public class DashboardService {
 
     private String formatCompactVnd(double amount) {
         if (amount >= 1_000_000_000) {
-            return formatNumber(amount / 1_000_000_000) + " tỷ đ";
+            return formatNumber(amount / 1_000_000_000) + " tỷ VND";
         }
         if (amount >= 1_000_000) {
-            return formatNumber(amount / 1_000_000) + " triệu đ";
+            return formatNumber(amount / 1_000_000) + " triệu VND";
         }
-        return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN")).format(Math.round(amount));
+        return formatVnd(BigDecimal.valueOf(amount));
+    }
+
+    private String formatVnd(BigDecimal amount) {
+        return NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"))
+                .format(amount.setScale(0, RoundingMode.HALF_UP))
+                + " VND";
     }
 }
