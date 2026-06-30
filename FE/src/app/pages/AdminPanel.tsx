@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, ResponsiveContainer, Tooltip, Area, AreaChart } from "recharts";
 
-type AdminSection = "dashboard" | "products" | "orders" | "users" | "vouchers" | "reviews" | "policies";
+type AdminSection = "dashboard" | "products" | "orders" | "users" | "vouchers" | "reviews" | "policies" | "notifications";
 
 const navItems: { key: AdminSection; label: string; icon: React.ElementType }[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -38,6 +38,50 @@ function formatAdminMoney(value: unknown) {
 
   return formatPrice(isCompact ? numeric * 1000 : numeric);
 }
+
+type AdminNotification = {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  kind: "order" | "stock" | "user" | "system";
+};
+
+const initialNotifications: AdminNotification[] = [
+  {
+    id: "notif-order-0922",
+    title: "New Order #ORD-0922",
+    message: "Eleanor Vance placed a new order.",
+    time: "5 mins ago",
+    read: false,
+    kind: "order",
+  },
+  {
+    id: "notif-stock-moonlit",
+    title: "Low Stock Alert",
+    message: "Moonlit Vanilla 220g is running low (3 left).",
+    time: "2 hours ago",
+    read: false,
+    kind: "stock",
+  },
+  {
+    id: "notif-user-sarah",
+    title: "New User Registered",
+    message: "Sarah Connor just created an account.",
+    time: "1 day ago",
+    read: true,
+    kind: "user",
+  },
+  {
+    id: "notif-sale",
+    title: "Opening Sale Active",
+    message: "The 30% opening campaign is currently running.",
+    time: "Today",
+    read: true,
+    kind: "system",
+  },
+];
 
 function Badge({ label, color }: { label: string; color: "green" | "yellow" | "gray" | "red" | "brown" | "blue" }) {
   const map = {
@@ -114,11 +158,25 @@ function Sidebar({ active, setActive }: { active: AdminSection; setActive: (s: A
 }
 
 // ── Top Header ────────────────────────────────────────────────────────────────
-function TopHeader({ placeholder }: { placeholder: string }) {
+function TopHeader({
+  placeholder,
+  notifications,
+  onViewNotifications,
+  onMarkNotificationRead,
+  onMarkAllNotificationsRead,
+}: {
+  placeholder: string;
+  notifications: AdminNotification[];
+  onViewNotifications: () => void;
+  onMarkNotificationRead: (id: string) => void;
+  onMarkAllNotificationsRead: () => void;
+}) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { user, logout } = useAuth();
   const { navigate } = useNav();
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const previewNotifications = notifications.slice(0, 3);
 
   const handleLogout = () => {
     logout();
@@ -143,35 +201,60 @@ function TopHeader({ placeholder }: { placeholder: string }) {
           <button 
             onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}
             className="p-2 rounded-full hover:bg-[#f5ece7] transition-colors relative"
+            title="Notifications"
           >
             <Bell size={18} color="#4e453e" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white text-center border border-white">
+                {unreadCount}
+              </span>
+            )}
           </button>
           
           {isNotifOpen && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
-              <div className="px-4 py-3 border-b border-gray-100 bg-[#fbf2ed]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-[#fbf2ed]">
                 <h3 className="font-semibold text-sm" style={{ color: "#1e1b18", ...F }}>Notifications</h3>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={onMarkAllNotificationsRead}
+                    className="text-[11px] font-medium hover:underline"
+                    style={{ color: "#6b5948", ...F }}
+                  >
+                    Mark all read
+                  </button>
+                )}
               </div>
               <div className="max-h-64 overflow-y-auto">
-                <div className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                  <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>New Order #ORD-0922</p>
-                  <p className="text-xs text-gray-500 mt-1" style={F}>Eleanor Vance placed a new order.</p>
-                  <p className="text-[10px] text-gray-400 mt-1" style={F}>5 mins ago</p>
-                </div>
-                <div className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                  <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>Low Stock Alert</p>
-                  <p className="text-xs text-gray-500 mt-1" style={F}>"Luminous Serum" is running low (3 left).</p>
-                  <p className="text-[10px] text-gray-400 mt-1" style={F}>2 hours ago</p>
-                </div>
-                <div className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                  <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>New User Registered</p>
-                  <p className="text-xs text-gray-500 mt-1" style={F}>Sarah Connor just created an account.</p>
-                  <p className="text-[10px] text-gray-400 mt-1" style={F}>1 day ago</p>
-                </div>
+                {previewNotifications.map((notification) => (
+                  <button
+                    key={notification.id}
+                    onClick={() => onMarkNotificationRead(notification.id)}
+                    className="block w-full px-4 py-3 text-left border-b border-gray-50 hover:bg-gray-50"
+                    style={{ backgroundColor: notification.read ? "white" : "#fff8f5" }}
+                  >
+                    <div className="flex items-start gap-2">
+                      {!notification.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium" style={{ color: "#1e1b18", ...F }}>{notification.title}</p>
+                        <p className="text-xs text-gray-500 mt-1" style={F}>{notification.message}</p>
+                        <p className="text-[10px] text-gray-400 mt-1" style={F}>{notification.time}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
               <div className="px-4 py-2 text-center border-t border-gray-100">
-                <button className="text-xs font-medium hover:underline" style={{ color: "#6b5948", ...F }}>View all notifications</button>
+                <button
+                  onClick={() => {
+                    setIsNotifOpen(false);
+                    onViewNotifications();
+                  }}
+                  className="text-xs font-medium hover:underline"
+                  style={{ color: "#6b5948", ...F }}
+                >
+                  View all notifications
+                </button>
               </div>
             </div>
           )}
@@ -343,6 +426,75 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
           </tbody>
         </table>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function NotificationsSection({
+  notifications,
+  onMarkNotificationRead,
+  onMarkAllNotificationsRead,
+}: {
+  notifications: AdminNotification[];
+  onMarkNotificationRead: (id: string) => void;
+  onMarkAllNotificationsRead: () => void;
+}) {
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const kindLabel: Record<AdminNotification["kind"], string> = {
+    order: "Order",
+    stock: "Stock",
+    user: "User",
+    system: "System",
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>Notifications</h1>
+          <p style={{ ...F, fontSize: 15, color: "#4e453e", marginTop: 4 }}>
+            {unreadCount > 0 ? `${unreadCount} unread updates need your attention.` : "All operational updates are read."}
+          </p>
+        </div>
+        <button
+          onClick={onMarkAllNotificationsRead}
+          className="rounded-lg px-4 py-2 text-sm font-semibold hover:opacity-80 disabled:opacity-40"
+          disabled={unreadCount === 0}
+          style={{ ...F, border: "1px solid #d1c4bb", color: "#6b5948", backgroundColor: "white" }}
+        >
+          Mark All Read
+        </button>
+      </div>
+
+      <div className="overflow-hidden rounded-xl" style={{ backgroundColor: "white", border: "1px solid #d1c4bb" }}>
+        {notifications.map((notification, index) => (
+          <button
+            key={notification.id}
+            onClick={() => onMarkNotificationRead(notification.id)}
+            className="flex w-full items-start gap-4 px-5 py-4 text-left transition-colors hover:bg-[#fff8f5]"
+            style={{
+              borderBottom: index < notifications.length - 1 ? "1px solid rgba(209,196,187,0.55)" : "none",
+              backgroundColor: notification.read ? "white" : "#fff8f5",
+            }}
+          >
+            <span
+              className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+              style={{ ...F, backgroundColor: notification.read ? "#f5ece7" : "#6b5948", color: notification.read ? "#6b5948" : "white" }}
+            >
+              {kindLabel[notification.kind][0]}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-2">
+                <span style={{ ...F, fontWeight: 700, fontSize: 14, color: "#1e1b18" }}>{notification.title}</span>
+                {!notification.read && <Badge label="Unread" color="red" />}
+                <Badge label={kindLabel[notification.kind]} color="brown" />
+              </span>
+              <span className="mt-1 block" style={{ ...F, fontSize: 13, color: "#4e453e" }}>{notification.message}</span>
+              <span className="mt-2 block" style={{ ...F, fontSize: 11, color: "#9c8d82" }}>{notification.time}</span>
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -1171,7 +1323,7 @@ const voucherUsageData = [
 ];
 const voucherRows = [
   { code: "SPRING24", type: "% 20% Off", validity: "Mar 1 – Apr 30, 2024", usage: "1,205 /5,000", status: "Active" },
-  { code: "WELCOME_AURA", type: "50.000 đ Fixed", validity: "Ongoing", usage: "8,430 /∞", status: "Active" },
+  { code: "WELCOME_AURA", type: "50.000 VND Fixed", validity: "Ongoing", usage: "8,430 /∞", status: "Active" },
   { code: "VIP_GIFT_Q1", type: "🎁 Free Item", validity: "Jan 1 – Mar 31, 2024", usage: "500 /500", status: "Exhausted" },
   { code: "SUMMER_PREVIEW", type: "% 15% Off", validity: "May 1 – Jun 30, 2024", usage: "0 /10,000", status: "Scheduled" },
 ];
@@ -1407,7 +1559,7 @@ const policyVersions = [
 
 const defaultPolicyContent = `Domestic Shipping (US)
 
-At Lumos Aura, we treat every order with the same care and precision as our craft. Standard shipping (3-5 business days) is complimentary on all orders over 500.000 đ. For expedited needs, we offer 2-Day Air (60.000 đ) and Next Day Delivery (100.000 đ).
+At Lumos Aura, we treat every order with the same care and precision as our craft. Standard shipping (3-5 business days) is complimentary on all orders over 500.000 VND. For expedited needs, we offer 2-Day Air (60.000 VND) and Next Day Delivery (100.000 VND).
 
 Please note that due to the delicate nature of our glass vessels and ambient liquid formulas, all shipments are temperature-controlled and require a signature upon delivery to ensure safe arrival.
 
@@ -1531,6 +1683,7 @@ function PoliciesSection() {
 // ── Main AdminPanel ───────────────────────────────────────────────────────────
 export function AdminPanel() {
   const [section, setSection] = useState<AdminSection>("dashboard");
+  const [notifications, setNotifications] = useState<AdminNotification[]>(initialNotifications);
 
   const searchPlaceholders: Record<AdminSection, string> = {
     dashboard: "Search dashboard...",
@@ -1540,15 +1693,37 @@ export function AdminPanel() {
     vouchers: "Search Vouchers...",
     reviews: "Search reviews, products, or customers...",
     policies: "Search across command center...",
+    notifications: "Search notifications...",
+  };
+
+  const markNotificationRead = (id: string) => {
+    setNotifications((items) => items.map((item) => item.id === id ? { ...item, read: true } : item));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications((items) => items.map((item) => ({ ...item, read: true })));
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#fff8f5" }}>
       <Sidebar active={section} setActive={setSection} />
-      <TopHeader placeholder={searchPlaceholders[section]} />
+      <TopHeader
+        placeholder={searchPlaceholders[section]}
+        notifications={notifications}
+        onViewNotifications={() => setSection("notifications")}
+        onMarkNotificationRead={markNotificationRead}
+        onMarkAllNotificationsRead={markAllNotificationsRead}
+      />
       <main className="lg:pl-64 lg:pt-16">
         <div className="w-full max-w-[1200px] p-4 sm:p-6 lg:p-8">
           {section === "dashboard" && <DashboardSection onViewOrders={() => setSection("orders")} />}
+          {section === "notifications" && (
+            <NotificationsSection
+              notifications={notifications}
+              onMarkNotificationRead={markNotificationRead}
+              onMarkAllNotificationsRead={markAllNotificationsRead}
+            />
+          )}
           {section === "products" && <ProductsSection />}
           {section === "orders" && <OrdersSection />}
           {section === "users" && <UsersSection />}

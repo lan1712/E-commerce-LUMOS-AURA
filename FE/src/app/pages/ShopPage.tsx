@@ -88,17 +88,28 @@ const sizeOptions = [
 
 const isGiftProduct = (product: Product) => product.category === "Gift Collection" || product.category === "Gift Sets";
 
-function parseSizeGrams(product: Product) {
-  const match = product.size?.match(/(\d+)/);
+function parseSizeGrams(size?: string | null, weightGrams?: number | null) {
+  if (weightGrams) return weightGrams;
+  if (!size || !/\bg\b/i.test(size)) return 0;
+  const match = size.match(/(\d+)/);
   return match ? Number(match[1]) : 0;
 }
 
-function matchesSize(product: Product, sizeId: string) {
-  const grams = parseSizeGrams(product);
+function matchesSizeGrams(grams: number, sizeId: string) {
   if (!grams) return false;
   if (sizeId === "mini") return grams <= 100;
   if (sizeId === "medium") return grams >= 101 && grams <= 200;
   return grams >= 201;
+}
+
+function matchesSize(product: Product, sizeId: string) {
+  if (product.variants?.length) {
+    return product.variants.some((variant) =>
+      matchesSizeGrams(parseSizeGrams(variant.sizeLabel, variant.weightGrams), sizeId),
+    );
+  }
+
+  return matchesSizeGrams(parseSizeGrams(product.size), sizeId);
 }
 
 function getMoodSearchText(product: Product) {
@@ -375,9 +386,9 @@ export function ShopPage() {
                   className="w-full accent-[#6b5948]"
                 />
                 <div className="flex justify-between">
-                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#897d73" }}>100.000d</span>
+                  <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#897d73" }}>100.000 VND</span>
                   <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "#897d73" }}>
-                    {maxPrice >= 600000 ? "600.000d+" : formatPrice(maxPrice)}
+                    {maxPrice >= 600000 ? "600.000 VND+" : formatPrice(maxPrice)}
                   </span>
                 </div>
               </FilterSection>

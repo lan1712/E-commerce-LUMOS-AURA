@@ -78,11 +78,9 @@ export function getProductImages(product: Product): string[] {
 }
 
 export function formatPrice(value: number): string {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
+  return `${new Intl.NumberFormat("vi-VN", {
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(value)} VND`;
 }
 
 export const OPENING_DISCOUNT_RATE = 0.3;
