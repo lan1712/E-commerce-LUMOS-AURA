@@ -282,7 +282,7 @@ export function ContactUsPage() {
                       Email Inquiries
                     </p>
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#675a4e" }}>
-                      concierge@lumosaura.com
+                      lanpham0961@gmail.com
                     </p>
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export function ContactUsPage() {
                       Telephone
                     </p>
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#675a4e" }}>
-                      +33 1 45 67 88 00
+                      +84 903348270
                     </p>
                   </div>
                 </div>

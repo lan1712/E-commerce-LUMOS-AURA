@@ -4,6 +4,14 @@ import { useNav, useAuth } from "../context";
 import { Footer } from "../components/Footer";
 import { addressesApi } from "../api";
 import type { AddressPayload } from "../api";
+import {
+  DEFAULT_VIETNAM_POSTAL_CODE,
+  composeVietnamLocation,
+  findProvince,
+  findWard,
+  loadVietnamAddressData,
+} from "../vietnamAddressData";
+import type { VietnamProvince } from "../vietnamAddressData";
 
 interface Address {
   id: number;
@@ -17,42 +25,42 @@ interface Address {
   isDefault: boolean;
 }
 
-const INITIAL_ADDRESSES: Address[] = [
-  {
-    id: "addr-1",
-    label: "Home",
-    name: "Eleanor Vance",
-    line1: "14 Rue des Fleurs",
-    line2: "Apt 3B",
-    city: "Paris",
-    country: "France",
-    zip: "75006",
-    isDefault: true,
-  },
-];
-
 function AddressForm({
   initial,
   onSave,
   onCancel,
+  provinces,
 }: {
   initial?: Partial<Address>;
   onSave: (a: AddressPayload) => void;
   onCancel: () => void;
+  provinces: VietnamProvince[];
 }) {
+  const [provinceCode, setProvinceCode] = useState("");
+  const [wardCode, setWardCode] = useState("");
   const [form, setForm] = useState({
     label: initial?.label ?? "",
     name: initial?.name ?? "",
     line1: initial?.line1 ?? "",
     line2: initial?.line2 ?? "",
     city: initial?.city ?? "",
-    country: initial?.country ?? "",
+    country: initial?.country ?? "VN",
     zip: initial?.zip ?? "",
     isDefault: initial?.isDefault ?? false,
   });
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
+
+  const selectedProvince = findProvince(provinces, provinceCode);
+  const selectedWard = findWard(selectedProvince, wardCode);
+  const selectedLocation = composeVietnamLocation(selectedProvince, selectedWard);
+
+  useEffect(() => {
+    if (selectedLocation) {
+      setForm((prev) => ({ ...prev, city: selectedLocation, country: "VN" }));
+    }
+  }, [selectedLocation]);
 
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Inter', sans-serif",
@@ -78,6 +86,21 @@ function AddressForm({
     display: "block",
   };
 
+  const selectStyle: React.CSSProperties = {
+    ...inputStyle,
+    color: "#3d3530",
+    paddingBottom: 7,
+  };
+
+  const handleSave = () => {
+    onSave({
+      ...form,
+      city: selectedLocation || form.city,
+      country: "VN",
+      zip: form.zip || DEFAULT_VIETNAM_POSTAL_CODE,
+    });
+  };
+
   return (
     <div
       className="rounded-2xl p-7"
@@ -101,18 +124,40 @@ function AddressForm({
         <label style={labelStyle}>Apartment / Suite (optional)</label>
         <input style={inputStyle} value={form.line2} onChange={set("line2")} placeholder="Apt, floor, suite…" />
       </div>
-      <div className="mb-5 grid gap-5 sm:grid-cols-3">
+      <div className="mb-5 grid gap-5 sm:grid-cols-2">
         <div>
-          <label style={labelStyle}>City</label>
-          <input style={inputStyle} value={form.city} onChange={set("city")} placeholder="City" />
+          <label style={labelStyle}>Province / City</label>
+          <select
+            style={selectStyle}
+            value={provinceCode}
+            onChange={(e) => {
+              setProvinceCode(e.target.value);
+              setWardCode("");
+            }}
+          >
+            <option value="">{initial?.city || "Select province"}</option>
+            {provinces.map((province) => (
+              <option key={province.code} value={province.code}>
+                {province.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
-          <label style={labelStyle}>Country</label>
-          <input style={inputStyle} value={form.country} onChange={set("country")} placeholder="Country" />
-        </div>
-        <div>
-          <label style={labelStyle}>Postal Code</label>
-          <input style={inputStyle} value={form.zip} onChange={set("zip")} placeholder="ZIP / Post code" />
+          <label style={labelStyle}>Ward</label>
+          <select
+            style={selectStyle}
+            value={wardCode}
+            onChange={(e) => setWardCode(e.target.value)}
+            disabled={!selectedProvince}
+          >
+            <option value="">Select ward</option>
+            {selectedProvince?.wards?.map((ward) => (
+              <option key={ward.code} value={ward.code}>
+                {ward.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <label className="flex items-center gap-2.5 cursor-pointer mb-7">
@@ -128,7 +173,7 @@ function AddressForm({
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
-          onClick={() => onSave(form)}
+          onClick={handleSave}
           className="rounded-full px-6 py-3 hover:opacity-90 transition-opacity"
           style={{
             backgroundColor: "#6b5948",
@@ -163,6 +208,7 @@ export function AddressesPage() {
   const { navigate } = useNav();
   const { isLoggedIn } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [provinces, setProvinces] = useState<VietnamProvince[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -175,6 +221,10 @@ export function AddressesPage() {
       .catch(() => setAddresses([]))
       .finally(() => setLoading(false));
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    loadVietnamAddressData().then(setProvinces);
+  }, []);
 
   const handleSave = async (data: AddressPayload) => {
     try {
@@ -268,6 +318,7 @@ export function AddressesPage() {
                 initial={addr}
                 onSave={handleSave}
                 onCancel={() => setEditingId(null)}
+                provinces={provinces}
               />
             ) : (
               <div
@@ -321,7 +372,7 @@ export function AddressesPage() {
                       {addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}
                     </p>
                     <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#675a4e" }}>
-                      {addr.city}, {addr.country} {addr.zip}
+                      {addr.city}{addr.country ? `, ${addr.country}` : ""}
                     </p>
                     {!addr.isDefault && (
                       <button
@@ -363,7 +414,7 @@ export function AddressesPage() {
 
           {/* Add address */}
           {showForm && !editingId ? (
-            <AddressForm onSave={handleSave} onCancel={() => setShowForm(false)} />
+            <AddressForm onSave={handleSave} onCancel={() => setShowForm(false)} provinces={provinces} />
           ) : (
             !editingId && (
               <button

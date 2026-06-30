@@ -1,10 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useCart, useNav, useAuth } from "../context";
-import { ordersApi } from "../api";
+import { addressesApi, ordersApi } from "../api";
+import type { AddressPayload } from "../api";
 import { formatPrice, getOpeningSalePrice, OPENING_DISCOUNT_LABEL } from "../data";
+import {
+  DEFAULT_VIETNAM_POSTAL_CODE,
+  composeVietnamLocation,
+  findProvince,
+  findWard,
+  loadVietnamAddressData,
+} from "../vietnamAddressData";
+import type { VietnamProvince } from "../vietnamAddressData";
 
 type Step = "contact" | "shipping" | "payment" | "confirmed";
+
+type SavedAddress = AddressPayload & {
+  id: number;
+};
 
 function InputField({
   label,
@@ -44,6 +57,54 @@ function InputField({
         onFocus={(e) => (e.target.style.borderBottomColor = "#6b5948")}
         onBlur={(e) => (e.target.style.borderBottomColor = "#d1c4bb")}
       />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  disabled,
+  options,
+}: {
+  label?: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      {label && (
+        <label
+          style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 11, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase" }}
+        >
+          {label}
+        </label>
+      )}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="outline-none pb-2 transition-colors bg-transparent w-full disabled:opacity-50"
+        style={{
+          borderBottom: "1px solid #d1c4bb",
+          fontFamily: "'Inter', sans-serif",
+          fontWeight: 400,
+          fontSize: 15,
+          color: value ? "#3d3530" : "#9ca3af",
+        }}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -129,9 +190,14 @@ function AccordionSection({
 export function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const { navigate } = useNav();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
 
   const [step, setStep] = useState<Step>("contact");
+  const [provinces, setProvinces] = useState<VietnamProvince[]>([]);
+  const [provinceCode, setProvinceCode] = useState("");
+  const [wardCode, setWardCode] = useState("");
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<number | null>(null);
+  const [saveShippingAddress, setSaveShippingAddress] = useState(true);
   const [contact, setContact] = useState({ email: user?.email ?? "" });
   const [shipping, setShipping] = useState({
     firstName: user?.firstName ?? "", lastName: user?.lastName ?? "",
@@ -146,18 +212,98 @@ export function CheckoutPage() {
   const shippingCost = total >= 500000 ? 0 : 30000;
   const finalTotal = total + shippingCost;
   const saleActive = items.some(({ product }) => getOpeningSalePrice(product.price) < product.price);
+  const selectedProvince = findProvince(provinces, provinceCode);
+  const selectedWard = findWard(selectedProvince, wardCode);
+  const selectedLocation = composeVietnamLocation(selectedProvince, selectedWard);
+
+  useEffect(() => {
+    loadVietnamAddressData().then(setProvinces);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    addressesApi.list()
+      .then((data: SavedAddress[]) => {
+        const preferred = data.find((address) => address.isDefault) ?? data[0];
+        if (!preferred) return;
+
+        const nameParts = preferred.name.trim().split(/\s+/);
+        setSelectedSavedAddressId(preferred.id);
+        setShipping((prev) => ({
+          ...prev,
+          firstName: prev.firstName || nameParts.slice(0, -1).join(" ") || preferred.name,
+          lastName: prev.lastName || nameParts.slice(-1).join(" "),
+          address: preferred.line1 || prev.address,
+          apt: preferred.line2 || prev.apt,
+          city: preferred.city || prev.city,
+          state: preferred.country === "VN" ? prev.state : preferred.country,
+          zip: preferred.zip || prev.zip,
+        }));
+      })
+      .catch(() => undefined);
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (selectedLocation) {
+      setShipping((prev) => ({
+        ...prev,
+        city: selectedLocation,
+        state: selectedProvince?.name ?? "",
+        zip: prev.zip || DEFAULT_VIETNAM_POSTAL_CODE,
+      }));
+    }
+  }, [selectedLocation, selectedProvince?.name]);
+
+  useEffect(() => {
+    if (!shipping.city || !provinces.length || provinceCode || wardCode) return;
+    const parts = shipping.city.split(",").map((part) => part.trim()).filter(Boolean);
+    const provinceName = parts.at(-1);
+    const wardName = parts.at(-2);
+    const province = provinces.find((item) => item.name === provinceName);
+    const ward = province?.wards?.find((item) => item.name === wardName);
+
+    if (province) setProvinceCode(String(province.code));
+    if (ward) setWardCode(String(ward.code));
+  }, [shipping.city, provinces, provinceCode, wardCode]);
+
+  const buildAddressPayload = (): AddressPayload => ({
+    label: "Home",
+    name: `${shipping.firstName} ${shipping.lastName}`.trim(),
+    line1: shipping.address,
+    line2: shipping.apt || undefined,
+    city: selectedLocation || shipping.city,
+    country: "VN",
+    zip: shipping.zip || DEFAULT_VIETNAM_POSTAL_CODE,
+    isDefault: true,
+  });
+
+  const saveAddressIfNeeded = async () => {
+    if (!isLoggedIn || !saveShippingAddress) return;
+    const addressPayload = buildAddressPayload();
+    if (!addressPayload.name || !addressPayload.line1 || !addressPayload.city) return;
+
+    if (selectedSavedAddressId) {
+      await addressesApi.update(selectedSavedAddressId, addressPayload);
+      return;
+    }
+
+    const created = await addressesApi.create(addressPayload) as SavedAddress;
+    setSelectedSavedAddressId(created.id);
+  };
 
   const handlePlaceOrder = async () => {
     setPlacing(true);
     setPlaceError("");
     try {
+      await saveAddressIfNeeded();
       const payload = {
         email: contact.email,
         shipName: `${shipping.firstName} ${shipping.lastName}`.trim(),
         shipAddress: shipping.address + (shipping.apt ? `, ${shipping.apt}` : ""),
-        shipCity: shipping.city,
-        shipState: shipping.state,
-        shipZip: shipping.zip,
+        shipCity: selectedLocation || shipping.city,
+        shipState: selectedProvince?.name || shipping.state,
+        shipZip: shipping.zip || DEFAULT_VIETNAM_POSTAL_CODE,
+        shipCountry: "VN",
         promoCode: promoCode || undefined,
         paymentMethod: paymentMethod,
         items: items.map((i) => ({
@@ -273,7 +419,7 @@ export function CheckoutPage() {
             title="Shipping Address"
             isActive={step === "shipping"}
             isCompleted={step === "payment"}
-            summary={shipping.city ? `${shipping.city}, ${shipping.state}` : undefined}
+            summary={shipping.city || undefined}
             onEdit={() => setStep("shipping")}
           >
             <div className="flex flex-col gap-5">
@@ -283,23 +429,50 @@ export function CheckoutPage() {
               </div>
               <InputField placeholder="Address" value={shipping.address} onChange={(v) => setShipping({ ...shipping, address: v })} />
               <InputField placeholder="Apartment, suite, etc. (optional)" value={shipping.apt} onChange={(v) => setShipping({ ...shipping, apt: v })} />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <InputField placeholder="City" value={shipping.city} onChange={(v) => setShipping({ ...shipping, city: v })} />
-                <div className="flex flex-col gap-1">
-                  <select
-                    value={shipping.state}
-                    onChange={(e) => setShipping({ ...shipping, state: e.target.value })}
-                    className="pb-2 bg-transparent outline-none"
-                    style={{ borderBottom: "1px solid #d1c4bb", fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 15, color: shipping.state ? "#3d3530" : "#9ca3af" }}
-                  >
-                    <option value="">State</option>
-                    {["CA", "NY", "TX", "FL", "WA", "OR", "IL", "MA"].map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                <InputField placeholder="ZIP Code" value={shipping.zip} onChange={(v) => setShipping({ ...shipping, zip: v })} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <SelectField
+                  placeholder="Province / City"
+                  value={provinceCode}
+                  onChange={(value) => {
+                    setProvinceCode(value);
+                    setWardCode("");
+                  }}
+                  options={provinces.map((province) => ({ value: String(province.code), label: province.name }))}
+                />
+                <SelectField
+                  placeholder="Ward"
+                  value={wardCode}
+                  onChange={setWardCode}
+                  disabled={!selectedProvince}
+                  options={(selectedProvince?.wards ?? []).map((ward) => ({ value: String(ward.code), label: ward.name }))}
+                />
               </div>
+              {isLoggedIn && (
+                <div
+                  className="flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between"
+                  style={{ backgroundColor: "#fff8f5", border: "1px solid rgba(209,196,187,0.7)" }}
+                >
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={saveShippingAddress}
+                      onChange={(e) => setSaveShippingAddress(e.target.checked)}
+                      style={{ accentColor: "#6b5948", width: 15, height: 15, marginTop: 2 }}
+                    />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 13, color: "#4e453e", lineHeight: "20px" }}>
+                      Save this address to my account for next checkout.
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => navigate("addresses")}
+                    className="self-start hover:opacity-70 transition-opacity sm:self-auto"
+                    style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, color: "#735a36", whiteSpace: "nowrap" }}
+                  >
+                    Manage addresses
+                  </button>
+                </div>
+              )}
             </div>
             <button
               onClick={() => setStep("payment")}

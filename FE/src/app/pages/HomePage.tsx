@@ -748,7 +748,7 @@ export function HomePage() {
                 lineHeight: 1.15,
               }}
             >
-              A candle should change the way a room feels.
+              Glow softly, heal deeply.
             </h2>
             <p
               style={{

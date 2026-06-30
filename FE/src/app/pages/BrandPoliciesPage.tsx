@@ -183,13 +183,13 @@ export function BrandPoliciesPage() {
           {/* Shipping Information */}
           <PolicySection id="shipping" title="Shipping Information">
             <BodyText>
-              All orders are carefully prepared and dispatched from our atelier. We offer complimentary standard shipping on all domestic orders above 500.000 VND.
+              All orders are carefully prepared and dispatched from our atelier. We offer complimentary standard shipping on all domestic orders above 300.000 VND.
             </BodyText>
             <div className="my-6 grid gap-4 sm:grid-cols-2">
               <ShippingCard
                 title="Standard Shipping"
                 sub1="3–5 business days"
-                sub2="Complimentary on orders 500.000 VND+"
+                sub2="Complimentary on orders 300.000 VND+"
               />
               <ShippingCard
                 title="Expedited Shipping"

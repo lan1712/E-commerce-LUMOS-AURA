@@ -20,14 +20,27 @@ export function Footer() {
               Bridging high-end olfactory art with cosmic mysticism.
             </p>
             <div className="flex gap-4 mt-8">
-              {["Instagram", "Pinterest", "TikTok"].map((s) => (
-                <button
-                  key={s}
-                  style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#735a36" }}
+              {[
+                { name: "Instagram", url: "https://www.instagram.com/lumos_aura0" },
+                { name: "Facebook", url: "https://www.facebook.com/lumosaura.official" },
+                { name: "TikTok", url: "https://www.tiktok.com/@yourpage" },
+              ].map((s) => (
+                <a
+                  key={s.name}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: 500,
+                    fontSize: 12,
+                    letterSpacing: "0.96px",
+                    color: "#735a36",
+                  }}
                   className="hover:opacity-70 transition-opacity"
                 >
-                  {s}
-                </button>
+                  {s.name}
+                </a>
               ))}
             </div>
           </div>
