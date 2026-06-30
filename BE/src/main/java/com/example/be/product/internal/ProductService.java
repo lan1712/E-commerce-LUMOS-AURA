@@ -1,6 +1,7 @@
 package com.example.be.product.internal;
 
 import com.example.be.product.api.ProductDTO;
+import com.example.be.product.api.ProductVariantDTO;
 import com.example.be.product.domain.Category;
 import com.example.be.product.domain.CategoryRepository;
 import com.example.be.product.domain.Product;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.example.be.product.api.ProductCreateRequest;
@@ -147,7 +149,23 @@ public class ProductService {
                 List.copyOf(p.getThumbnails()),
                 p.getBurnTime(),
                 p.getBurnHours(),
-                p.getSize()
+                p.getSize(),
+                p.getVariants().stream()
+                        .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                        .sorted(Comparator.comparing(variant -> variant.getWeightGrams() == null ? Integer.MAX_VALUE : variant.getWeightGrams()))
+                        .map(variant -> new ProductVariantDTO(
+                                variant.getId(),
+                                variant.getVariantName(),
+                                variant.getSku(),
+                                variant.getSizeLabel(),
+                                variant.getWeightGrams(),
+                                variant.getBurnTimeHours(),
+                                variant.getPrice(),
+                                variant.getStockQuantity(),
+                                variant.getThumbnailUrl(),
+                                variant.getDefaultVariant()
+                        ))
+                        .toList()
         );
     }
 

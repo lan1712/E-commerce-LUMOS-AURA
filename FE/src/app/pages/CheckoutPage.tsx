@@ -160,7 +160,11 @@ export function CheckoutPage() {
         shipZip: shipping.zip,
         promoCode: promoCode || undefined,
         paymentMethod: paymentMethod,
-        items: items.map((i) => ({ productSlug: i.product.id, quantity: i.quantity })),
+        items: items.map((i) => ({
+          productSlug: i.product.slug ?? i.product.id.split("::")[0],
+          variantId: i.product.selectedVariantId,
+          quantity: i.quantity,
+        })),
       };
       const res = await ordersApi.create(payload);
       clearCart();

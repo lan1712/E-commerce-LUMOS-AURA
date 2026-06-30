@@ -27,6 +27,18 @@ const navItems: { key: AdminSection; label: string; icon: React.ElementType }[] 
 const F = { fontFamily: "'Inter', sans-serif" };
 const PF = { fontFamily: "'Playfair Display', serif" };
 
+function formatAdminMoney(value: unknown) {
+  if (typeof value === "number") return formatPrice(value);
+  const text = String(value ?? "");
+  if (!text.includes("$")) return text;
+
+  const isCompact = /k\s*$/i.test(text.trim());
+  const numeric = Number(text.replace(/[$,\s]|k/gi, ""));
+  if (Number.isNaN(numeric)) return text.replaceAll("$", "");
+
+  return formatPrice(isCompact ? numeric * 1000 : numeric);
+}
+
 function Badge({ label, color }: { label: string; color: "green" | "yellow" | "gray" | "red" | "brown" | "blue" }) {
   const map = {
     green:  { bg: "#dcfce7", text: "#166534" },
@@ -255,7 +267,7 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
                 <TrendingUp size={16} color="#6b5948" />
               </div>
             </div>
-            <p style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>{m.value}</p>
+            <p style={{ ...PF, fontSize: 32, color: "#1e1b18" }}>{m.label === "REVENUE" ? formatAdminMoney(m.value) : m.value}</p>
             <div className="flex items-center gap-1 mt-1">
               {m.up ? <TrendingUp size={12} color="#16a34a" /> : <TrendingDown size={12} color="#dc2626" />}
               <span style={{ ...F, fontSize: 13, fontWeight: 500, color: m.up ? "#16a34a" : "#dc2626" }}>{m.change}</span>
@@ -322,7 +334,7 @@ function DashboardSection({ onViewOrders }: { onViewOrders: () => void }) {
                 <td className="px-4 py-4" style={{ ...F, fontWeight: 500, fontSize: 14, color: "#1e1b18" }}>{o.id}</td>
                 <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{o.customer}</td>
                 <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#4e453e" }}>{o.date}</td>
-                <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#1e1b18" }}>{o.amount}</td>
+                <td className="px-4 py-4" style={{ ...F, fontSize: 14, color: "#1e1b18" }}>{formatAdminMoney(o.amount)}</td>
                 <td className="px-4 py-4">
                   <Badge label={o.status} color={statusColor(o.status) as "green" | "yellow" | "gray"} />
                 </td>
@@ -1159,7 +1171,7 @@ const voucherUsageData = [
 ];
 const voucherRows = [
   { code: "SPRING24", type: "% 20% Off", validity: "Mar 1 – Apr 30, 2024", usage: "1,205 /5,000", status: "Active" },
-  { code: "WELCOME_AURA", type: "$ $50 Fixed", validity: "Ongoing", usage: "8,430 /∞", status: "Active" },
+  { code: "WELCOME_AURA", type: "50.000 đ Fixed", validity: "Ongoing", usage: "8,430 /∞", status: "Active" },
   { code: "VIP_GIFT_Q1", type: "🎁 Free Item", validity: "Jan 1 – Mar 31, 2024", usage: "500 /500", status: "Exhausted" },
   { code: "SUMMER_PREVIEW", type: "% 15% Off", validity: "May 1 – Jun 30, 2024", usage: "0 /10,000", status: "Scheduled" },
 ];
@@ -1395,7 +1407,7 @@ const policyVersions = [
 
 const defaultPolicyContent = `Domestic Shipping (US)
 
-At Lumos Aura, we treat every order with the same care and precision as our craft. Standard shipping (3-5 business days) is complimentary on all orders over $150. For expedited needs, we offer 2-Day Air ($25) and Next Day Delivery ($40).
+At Lumos Aura, we treat every order with the same care and precision as our craft. Standard shipping (3-5 business days) is complimentary on all orders over 500.000 đ. For expedited needs, we offer 2-Day Air (60.000 đ) and Next Day Delivery (100.000 đ).
 
 Please note that due to the delicate nature of our glass vessels and ambient liquid formulas, all shipments are temperature-controlled and require a signature upon delivery to ensure safe arrival.
 

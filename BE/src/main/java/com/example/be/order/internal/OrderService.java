@@ -11,6 +11,7 @@ import com.example.be.order.domain.OrderRepository;
 import com.example.be.product.domain.Product;
 import com.example.be.product.domain.ProductNotFoundException;
 import com.example.be.product.domain.ProductRepository;
+import com.example.be.product.domain.ProductVariant;
 import com.example.be.promo.domain.DiscountType;
 import com.example.be.promo.domain.PromoCode;
 import com.example.be.promo.internal.PromoService;
@@ -111,8 +112,11 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
-            item.setProductName(product.getName());
-            BigDecimal currentPrice = getCurrentProductPrice(product);
+            ProductVariant variant = resolveVariant(product, itemReq.variantId());
+            item.setProductName(variant != null && variant.getSizeLabel() != null
+                    ? product.getName() + " - " + variant.getSizeLabel()
+                    : product.getName());
+            BigDecimal currentPrice = getCurrentProductPrice(product, variant);
             item.setProductPrice(currentPrice);
             item.setQuantity(itemReq.quantity());
             BigDecimal lineTotal = currentPrice
@@ -238,11 +242,26 @@ public class OrderService {
         return candidate;
     }
 
-    private BigDecimal getCurrentProductPrice(Product product) {
-        if (!isOpeningSaleActive()) {
-            return product.getPrice();
+    private ProductVariant resolveVariant(Product product, Long variantId) {
+        if (variantId == null) {
+            return product.getVariants().stream()
+                    .filter(variant -> Boolean.TRUE.equals(variant.getDefaultVariant()))
+                    .findFirst()
+                    .or(() -> product.getVariants().stream().findFirst())
+                    .orElse(null);
         }
-        return product.getPrice()
+        return product.getVariants().stream()
+                .filter(variant -> variant.getId().equals(variantId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Product variant not found"));
+    }
+
+    private BigDecimal getCurrentProductPrice(Product product, ProductVariant variant) {
+        BigDecimal basePrice = variant != null ? variant.getPrice() : product.getPrice();
+        if (!isOpeningSaleActive()) {
+            return basePrice;
+        }
+        return basePrice
                 .multiply(OPENING_SALE_MULTIPLIER)
                 .setScale(2, RoundingMode.HALF_UP);
     }

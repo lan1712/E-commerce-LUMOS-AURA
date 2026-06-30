@@ -25,6 +25,21 @@ export interface Product {
   burnTime?: string;
   burnHours?: number;
   size: string;
+  variants?: ProductVariant[];
+  selectedVariantId?: number;
+}
+
+export interface ProductVariant {
+  id: number;
+  variantName: string;
+  sku: string;
+  sizeLabel: string;
+  weightGrams?: number | null;
+  burnTime?: string | null;
+  price: number;
+  stockQuantity?: number;
+  thumbnailUrl?: string | null;
+  defaultVariant?: boolean;
 }
 
 const PRODUCT_FALLBACK_IMAGES: Record<string, string> = {

@@ -57,7 +57,7 @@ export function CartPage() {
   }, []);
 
   // "Complete your ritual" accessories — products not in cart
-  const cartIds = new Set(items.map((i) => i.product.id));
+  const cartIds = new Set(items.map((i) => i.product.slug ?? i.product.id.split("::")[0]));
   const ritualSuggestions = allProducts.filter((p) => !cartIds.has(p.id)).slice(0, 4);
 
   if (items.length === 0) {
@@ -118,6 +118,7 @@ export function CartPage() {
             {/* Items */}
             {items.map(({ product, quantity }) => {
               const salePrice = getOpeningSalePrice(product.price);
+              const productSlug = product.slug ?? product.id.split("::")[0];
               return (
               <div
                 key={product.id}
@@ -129,7 +130,7 @@ export function CartPage() {
                   <div
                     className="rounded-xl overflow-hidden shrink-0 flex items-center justify-center cursor-pointer"
                     style={{ width: 80, height: 80, backgroundColor: "#fff8f5", boxShadow: "0 4px 12px rgba(109,91,74,0.08)" }}
-                    onClick={() => navigate("product", product.id)}
+                    onClick={() => navigate("product", productSlug)}
                   >
                     <img src={product.image} alt={product.name} className="h-full w-auto object-contain" />
                   </div>

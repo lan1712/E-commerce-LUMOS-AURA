@@ -43,6 +43,8 @@ public record CreateOrderRequest(
             @NotBlank(message = "Product slug is required")
             String productSlug,
 
+            Long variantId,
+
             @Positive(message = "Quantity must be positive")
             int quantity
     ) {}

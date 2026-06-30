@@ -23,5 +23,6 @@ public record ProductDTO(
         List<String> thumbnails,
         String burnTime,
         Integer burnHours,
-        String size
+        String size,
+        List<ProductVariantDTO> variants
 ) {}

@@ -18,6 +18,7 @@ export function ProductDetailPage({ productId }: Props) {
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [error, setError] = useState("");
@@ -26,9 +27,12 @@ export function ProductDetailPage({ productId }: Props) {
     setProduct(null);
     setError("");
     setSelectedImage(0);
+    setSelectedVariantId(null);
     Promise.all([productsApi.get(productId), productsApi.list()])
       .then(([current, products]: [Product, Product[]]) => {
         setProduct(current);
+        const defaultVariant = current.variants?.find((variant) => variant.defaultVariant) ?? current.variants?.[0];
+        setSelectedVariantId(defaultVariant?.id ?? null);
         setAllProducts(products);
       })
       .catch((requestError: Error) => setError(requestError.message));
@@ -58,11 +62,28 @@ export function ProductDetailPage({ productId }: Props) {
 
   const images = getProductImages(product);
   const isAccessory = product.category === "Accessories";
-  const salePrice = getOpeningSalePrice(product.price);
-  const onSale = salePrice < product.price;
+  const variants = product.variants ?? [];
+  const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? variants.find((variant) => variant.defaultVariant) ?? variants[0];
+  const displayPrice = Number(selectedVariant?.price ?? product.price);
+  const displaySize = selectedVariant?.sizeLabel ?? product.size;
+  const displayBurnTime = selectedVariant?.burnTime ?? product.burnTime;
+  const salePrice = getOpeningSalePrice(displayPrice);
+  const onSale = salePrice < displayPrice;
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    const cartProduct = selectedVariant
+      ? {
+          ...product,
+          id: `${product.slug ?? product.id}::${selectedVariant.id}`,
+          slug: product.slug ?? product.id,
+          price: displayPrice,
+          size: displaySize,
+          burnTime: displayBurnTime ?? product.burnTime,
+          image: selectedVariant.thumbnailUrl || product.image,
+          selectedVariantId: selectedVariant.id,
+        }
+      : product;
+    addToCart(cartProduct, quantity);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2000);
   };
@@ -127,7 +148,7 @@ export function ProductDetailPage({ productId }: Props) {
             {onSale ? (
               <div className="flex flex-wrap items-baseline gap-3">
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 20, color: "#9c8d82", lineHeight: "32px", textDecoration: "line-through" }}>
-                  {formatPrice(product.price)}
+                  {formatPrice(displayPrice)}
                 </span>
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 30, color: "#5f4635", lineHeight: "40px" }}>
                   {formatPrice(salePrice)}
@@ -141,7 +162,7 @@ export function ProductDetailPage({ productId }: Props) {
               </div>
             ) : (
               <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 28, color: "#675a4e", lineHeight: "40px" }}>
-                {formatPrice(product.price)}
+                {formatPrice(displayPrice)}
               </p>
             )}
 
@@ -156,16 +177,48 @@ export function ProductDetailPage({ productId }: Props) {
               </div>
             )}
 
+            {variants.length > 1 && (
+              <div>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase", marginBottom: 10 }}>Choose Size</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {variants.map((variant) => {
+                    const isSelected = variant.id === selectedVariant?.id;
+                    const variantSalePrice = getOpeningSalePrice(Number(variant.price));
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setSelectedVariantId(variant.id)}
+                        className="rounded-2xl px-4 py-3 text-left transition-all"
+                        style={{
+                          border: `1.5px solid ${isSelected ? "#6b5948" : "#d9cbc2"}`,
+                          backgroundColor: isSelected ? "#f1e8e2" : "rgba(255,255,255,0.55)",
+                        }}
+                      >
+                        <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14, color: "#3d3530" }}>{variant.sizeLabel}</span>
+                        {variant.burnTime && (
+                          <span className="mt-1 block" style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: "#7f756d" }}>{variant.burnTime}</span>
+                        )}
+                        <span className="mt-2 block" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13, color: "#6b5948" }}>
+                          {formatPrice(variantSalePrice)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-6 sm:gap-8">
-              {!isAccessory && product.burnTime && (
+              {!isAccessory && displayBurnTime && (
                 <div>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase" }}>Burn Time</p>
-                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4e453e", marginTop: 4 }}>{product.burnTime}</p>
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4e453e", marginTop: 4 }}>{displayBurnTime}</p>
                 </div>
               )}
               <div>
                 <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase" }}>Size</p>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4e453e", marginTop: 4 }}>{product.size}</p>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4e453e", marginTop: 4 }}>{displaySize}</p>
               </div>
             </div>
 

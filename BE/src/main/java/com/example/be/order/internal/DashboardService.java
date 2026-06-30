@@ -93,7 +93,8 @@ public class DashboardService {
         List<Order> recent = orderRepository.findTop5ByOrderByCreatedAtDesc();
         List<DashboardStatsResponse.RecentOrderDTO> recentOrders = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US);
+        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+        currencyFormatter.setMaximumFractionDigits(0);
         for (Order o : recent) {
             recentOrders.add(new DashboardStatsResponse.RecentOrderDTO(
                 o.getOrderNumber(),
@@ -114,7 +115,7 @@ public class DashboardService {
     private DashboardStatsResponse.MetricDTO buildMetric(String label, Number allTimeVal, Number currentMonth, Number lastMonth, boolean isCurrency, boolean isPercent) {
         String valueStr;
         if (isCurrency) {
-            valueStr = "$" + formatNumber(allTimeVal.doubleValue() / 1000) + "k";
+            valueStr = formatCompactVnd(allTimeVal.doubleValue());
         } else if (isPercent) {
             valueStr = String.format("%.1f%%", allTimeVal.doubleValue());
         } else {
@@ -136,5 +137,15 @@ public class DashboardService {
 
     private String formatNumber(double number) {
         return NumberFormat.getNumberInstance(Locale.US).format(Math.round(number));
+    }
+
+    private String formatCompactVnd(double amount) {
+        if (amount >= 1_000_000_000) {
+            return formatNumber(amount / 1_000_000_000) + " tỷ đ";
+        }
+        if (amount >= 1_000_000) {
+            return formatNumber(amount / 1_000_000) + " triệu đ";
+        }
+        return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN")).format(Math.round(amount));
     }
 }
