@@ -95,6 +95,9 @@ public class OrderService {
         order.setShipZip(request.shipZip());
         order.setShipCountry(request.shipCountry() != null ? request.shipCountry() : "US");
         order.setPaymentMethod(request.paymentMethod() != null ? request.paymentMethod() : "COD");
+        if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+            order.setStatus("CONFIRMED");
+        }
 
         // Link user if authenticated
         if (userEmail != null) {
@@ -213,6 +216,7 @@ public class OrderService {
         
         if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
             order.setPaymentUrl(null);
+            order.setStatus("CONFIRMED");
         } else {
             String orderInfo = "Payment for order " + order.getOrderNumber();
             String paymentUrl;

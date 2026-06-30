@@ -13,6 +13,10 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   Processing: { bg: "#ffe4b5", text: "#8b5e00" },
   Delivered: { bg: "#d6f0e0", text: "#1a6b3a" },
   Pending: { bg: "#f0e8ff", text: "#5a3a9a" },
+  Confirmed: { bg: "#e7f5ee", text: "#1a6b3a" },
+  Paid: { bg: "#e7f5ee", text: "#1a6b3a" },
+  Completed: { bg: "#e7f5ee", text: "#1a6b3a" },
+  Cancelled: { bg: "#fee2e2", text: "#991b1b" },
 };
 
 interface ApiOrder {
@@ -24,6 +28,8 @@ interface ApiOrder {
   subtotal: number;
   discount: number;
   createdAt: string;
+  paymentMethod?: string;
+  paymentUrl?: string;
   items: Array<{
     id: number;
     productSlug: string;
@@ -46,6 +52,39 @@ type DisplayOrder = {
   items: Array<{ name: string; desc: string; price: number; qty: number; image: string }>;
 };
 
+function normalizeOrderStatus(status?: string) {
+  const value = (status || "PENDING").toUpperCase();
+  return value.charAt(0) + value.slice(1).toLowerCase();
+}
+
+function getTrackingStep(status?: string) {
+  const value = (status || "PENDING").toUpperCase();
+  if (value === "DELIVERED") return 4;
+  if (value === "SHIPPING") return 3;
+  if (value === "PROCESSING" || value === "PAID" || value === "COMPLETED") return 2;
+  if (value === "CONFIRMED") return 1;
+  return 0;
+}
+
+function mapOrder(o: ApiOrder): DisplayOrder {
+  return {
+    id: o.orderNumber,
+    date: new Date(o.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    total: Number(o.total),
+    status: normalizeOrderStatus(o.status),
+    trackingStep: getTrackingStep(o.status),
+    items: (o.items ?? []).map((i) => ({
+      name: i.productName,
+      desc: "",
+      price: Number(i.productPrice),
+      qty: i.quantity,
+      image: i.productImage ?? "",
+    })),
+    paymentMethod: o.paymentMethod,
+    paymentUrl: o.paymentUrl,
+  };
+}
+
 export function OrdersPage() {
   const { navigate } = useNav();
   const { isLoggedIn } = useAuth();
@@ -63,22 +102,7 @@ export function OrdersPage() {
     ordersApi.list()
       .then((data: ApiOrder[]) => {
         if (!data || data.length === 0) return;
-        const mapped: DisplayOrder[] = data.map((o) => ({
-          id: o.orderNumber,
-          date: new Date(o.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          total: Number(o.total),
-          status: o.status.charAt(0) + o.status.slice(1).toLowerCase(),
-          trackingStep: o.status === "DELIVERED" ? 4 : o.status === "PROCESSING" ? 2 : o.status === "CONFIRMED" ? 1 : 0,
-          items: (o.items ?? []).map((i) => ({
-            name: i.productName,
-            desc: "",
-            price: Number(i.productPrice),
-            qty: i.quantity,
-            image: i.productImage ?? "",
-          })),
-          paymentMethod: o.paymentMethod,
-          paymentUrl: o.paymentUrl,
-        }));
+        const mapped: DisplayOrder[] = data.map(mapOrder);
         setOrders(mapped);
         setSelectedOrder(mapped[0]);
       })
@@ -110,19 +134,12 @@ export function OrdersPage() {
         return;
       }
 
-      setOrders((current) =>
-        current.map((order) =>
-          order.id === displaySelected.id
-            ? { ...order, paymentMethod: retryMethod, paymentUrl: undefined }
-            : order
-        )
-      );
-      setSelectedOrder((current) =>
-        current?.id === displaySelected.id
-          ? { ...current, paymentMethod: retryMethod, paymentUrl: undefined }
-          : current
-      );
-      setRetryNotice("Payment method updated. We will confirm this order manually.");
+      const mapped = mapOrder(updated);
+      setOrders((current) => current.map((order) => order.id === displaySelected.id ? mapped : order));
+      setSelectedOrder((current) => current?.id === displaySelected.id ? mapped : current);
+      setRetryNotice(retryMethod === "COD"
+        ? "COD selected. Your order is confirmed for cash on delivery."
+        : "Payment method updated. We will confirm this order manually.");
     } catch (error) {
       setRetryError(error instanceof Error ? error.message : "Could not retry payment.");
     } finally {
