@@ -23,7 +23,7 @@ export function Footer() {
               {[
                 { name: "Instagram", url: "https://www.instagram.com/lumos_aura0" },
                 { name: "Facebook", url: "https://www.facebook.com/lumosaura.official" },
-                { name: "TikTok", url: "https://www.tiktok.com/@yourpage" },
+                { name: "TikTok", url: "https://www.tiktok.com/@lumosaura0?_r=1&_t=ZS-97dyJvAzP9h" },
               ].map((s) => (
                 <a
                   key={s.name}
