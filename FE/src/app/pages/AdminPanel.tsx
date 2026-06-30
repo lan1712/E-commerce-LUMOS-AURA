@@ -1582,9 +1582,9 @@ const policyVersions = [
   { label: "Version 2.0", dot: "#d1c4bb", time: "Jan 15, 2023", desc: "Major formatting overhaul" },
 ];
 
-const defaultPolicyContent = `Domestic Shipping (US)
+const defaultPolicyContent = `Domestic Shipping (Vietnam)
 
-At Lumos Aura, we treat every order with the same care and precision as our craft. Standard shipping (3-5 business days) is complimentary on all orders over 500.000 VND. For expedited needs, we offer 2-Day Air (60.000 VND) and Next Day Delivery (100.000 VND).
+At Lumos Aura, we treat every order with the same care and precision as our craft. Viettel Express shipping is complimentary on all orders from 300.000 VND. Orders below 300.000 VND include a 30.000 VND shipping fee.
 
 Please note that due to the delicate nature of our glass vessels and ambient liquid formulas, all shipments are temperature-controlled and require a signature upon delivery to ensure safe arrival.
 

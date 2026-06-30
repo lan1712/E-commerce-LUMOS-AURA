@@ -256,7 +256,7 @@ export function HomePage() {
                 "✦ Hand-Poured",
                 "✦ Long Burn Time",
                 "✦ Gift-Ready",
-                "✦ Free Shipping 500k+",
+                "✦ Free Shipping 300k+",
                 "✦ Made in Vietnam",
               ].map((item) => (
                 <span

@@ -209,7 +209,7 @@ export function CheckoutPage() {
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
 
-  const shippingCost = total >= 500000 ? 0 : 30000;
+  const shippingCost = total >= 300000 ? 0 : 30000;
   const finalTotal = total + shippingCost;
   const saleActive = items.some(({ product }) => getOpeningSalePrice(product.price) < product.price);
   const selectedProvince = findProvince(provinces, provinceCode);
@@ -616,11 +616,14 @@ export function CheckoutPage() {
             </div>
             )}
             <div className="flex justify-between">
-              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Shipping</span>
+              <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#675a4e" }}>Shipping (Viettel Express)</span>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 14, color: "#7f756d" }}>
                 {shippingCost === 0 ? "Miễn phí" : formatPrice(shippingCost)}
               </span>
             </div>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 12, color: "#8a7b70", marginTop: -4 }}>
+              Freeship cho đơn từ 300.000 VND. Đơn dưới 300.000 VND phí ship 30.000 VND.
+            </p>
             <div className="flex justify-between pt-3" style={{ borderTop: "1px solid #d1c4bb" }}>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: "#3d3530" }}>Total</span>
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 18, color: "#3d3530" }}>{formatPrice(finalTotal)}</span>
