@@ -5,7 +5,7 @@ import { productsApi } from "../api";
 import { Footer } from "../components/Footer";
 import { ProductCard } from "../components/ProductCard";
 import { ProductImage } from "../components/ProductImage";
-import { formatPrice, getOpeningSalePrice, getProductImages, OPENING_DISCOUNT_LABEL, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, getProductImages, getStockMessage, getVariantStock, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { useCart, useNav } from "../context";
 
 interface Props {
@@ -69,8 +69,16 @@ export function ProductDetailPage({ productId }: Props) {
   const displayBurnTime = selectedVariant?.burnTime ?? product.burnTime;
   const salePrice = getOpeningSalePrice(displayPrice);
   const onSale = salePrice < displayPrice;
+  const selectedStock = getVariantStock(product, selectedVariant?.id);
+  const isOutOfStock = selectedStock !== null && selectedStock <= 0;
+
+  const changeQuantity = (nextQuantity: number) => {
+    const upperLimit = selectedStock === null ? nextQuantity : Math.max(1, selectedStock);
+    setQuantity(Math.min(Math.max(1, nextQuantity), upperLimit));
+  };
 
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     const cartProduct = selectedVariant
       ? {
           ...product,
@@ -81,6 +89,7 @@ export function ProductDetailPage({ productId }: Props) {
           burnTime: displayBurnTime ?? product.burnTime,
           image: selectedVariant.thumbnailUrl || product.image,
           selectedVariantId: selectedVariant.id,
+          stockQuantity: selectedStock ?? undefined,
         }
       : product;
     addToCart(cartProduct, quantity);
@@ -184,12 +193,18 @@ export function ProductDetailPage({ productId }: Props) {
                   {variants.map((variant) => {
                     const isSelected = variant.id === selectedVariant?.id;
                     const variantSalePrice = getOpeningSalePrice(Number(variant.price));
+                    const variantStock = typeof variant.stockQuantity === "number" ? variant.stockQuantity : null;
+                    const variantOutOfStock = variantStock !== null && variantStock <= 0;
                     return (
                       <button
                         key={variant.id}
                         type="button"
-                        onClick={() => setSelectedVariantId(variant.id)}
-                        className="rounded-2xl px-4 py-3 text-left transition-all"
+                        disabled={variantOutOfStock}
+                        onClick={() => {
+                          setSelectedVariantId(variant.id);
+                          if (variantStock !== null) setQuantity((current) => Math.min(current, Math.max(1, variantStock)));
+                        }}
+                        className="rounded-2xl px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50"
                         style={{
                           border: `1.5px solid ${isSelected ? "#6b5948" : "#d9cbc2"}`,
                           backgroundColor: isSelected ? "#f1e8e2" : "rgba(255,255,255,0.55)",
@@ -201,6 +216,17 @@ export function ProductDetailPage({ productId }: Props) {
                         )}
                         <span className="mt-2 block" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13, color: "#6b5948" }}>
                           {formatPrice(variantSalePrice)}
+                        </span>
+                        <span
+                          className="mt-1 block"
+                          style={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontWeight: 600,
+                            fontSize: 11,
+                            color: variantStock !== null && variantStock <= 5 ? "#9b5c3d" : "#897d73",
+                          }}
+                        >
+                          {getStockMessage(variantStock)}
                         </span>
                       </button>
                     );
@@ -220,6 +246,12 @@ export function ProductDetailPage({ productId }: Props) {
                 <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase" }}>Size</p>
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "#4e453e", marginTop: 4 }}>{displaySize}</p>
               </div>
+              <div>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "0.96px", color: "#7f756d", textTransform: "uppercase" }}>Stock</p>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: selectedStock !== null && selectedStock <= 5 ? "#9b5c3d" : "#4e453e", marginTop: 4, fontWeight: 600 }}>
+                  {getStockMessage(selectedStock)}
+                </p>
+              </div>
             </div>
 
             <div style={{ borderTop: "1px solid #d1c4bb", paddingTop: 24 }}>
@@ -228,21 +260,22 @@ export function ProductDetailPage({ productId }: Props) {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <div className="flex items-center gap-3 rounded-full px-4 py-2" style={{ border: "1px solid #d1c4bb" }}>
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="hover:opacity-60 transition-opacity" title="Decrease quantity">
+                <button onClick={() => changeQuantity(quantity - 1)} className="hover:opacity-60 transition-opacity" title="Decrease quantity">
                   <Minus size={14} color="#6b5948" />
                 </button>
                 <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: "#6b5948", minWidth: 20, textAlign: "center" }}>{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="hover:opacity-60 transition-opacity" title="Increase quantity">
+                <button onClick={() => changeQuantity(quantity + 1)} className="hover:opacity-60 transition-opacity" title="Increase quantity">
                   <Plus size={14} color="#6b5948" />
                 </button>
               </div>
               <button
                 onClick={handleAddToCart}
-                className="w-full flex-1 flex items-center justify-center gap-2 rounded-full py-4 transition-all hover:opacity-90"
-                style={{ backgroundColor: added ? "#4e453e" : "#6b5948", fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "0.7px", color: "white" }}
+                disabled={isOutOfStock}
+                className="w-full flex-1 flex items-center justify-center gap-2 rounded-full py-4 transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: added ? "#4e453e" : isOutOfStock ? "#a99b91" : "#6b5948", fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "0.7px", color: "white" }}
               >
                 <ShoppingBag size={16} />
-                {added ? "Added to Cart!" : "Add to Cart"}
+                {isOutOfStock ? "Out of Stock" : added ? "Added to Cart!" : "Add to Cart"}
               </button>
             </div>
           </div>

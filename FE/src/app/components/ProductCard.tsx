@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { useCart, useNav } from "../context";
-import { formatPrice, getOpeningSalePrice, OPENING_DISCOUNT_LABEL, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, getProductStock, getStockMessage, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { ProductImage } from "./ProductImage";
 
 interface ProductCardProps {
@@ -12,6 +12,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const { navigate } = useNav();
   const salePrice = getOpeningSalePrice(product.price);
   const onSale = salePrice < product.price;
+  const stock = getProductStock(product);
+  const isOutOfStock = stock !== null && stock <= 0;
 
   return (
     <div className="flex flex-col gap-4 group cursor-pointer">
@@ -25,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
           className="h-[78%] w-[78%] object-contain transition-transform duration-500 group-hover:scale-105"
         />
         <button
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
           style={{
             backgroundColor: "#6b5948",
             fontFamily: "'Inter', sans-serif",
@@ -36,11 +38,13 @@ export function ProductCard({ product }: ProductCardProps) {
           }}
           onClick={(event) => {
             event.stopPropagation();
+            if (isOutOfStock) return;
             addToCart(product);
           }}
+          disabled={isOutOfStock}
         >
           <Plus size={12} />
-          Add to Cart
+          {isOutOfStock ? "Out of Stock" : "Add to Cart"}
         </button>
       </div>
 
@@ -97,6 +101,19 @@ export function ProductCard({ product }: ProductCardProps) {
             {formatPrice(product.price)}
           </p>
         )}
+        <p
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600,
+            fontSize: 11,
+            letterSpacing: "0.5px",
+            color: stock !== null && stock <= 5 ? "#9b5c3d" : "#897d73",
+            textAlign: "center",
+            marginTop: 2,
+          }}
+        >
+          {getStockMessage(stock)}
+        </p>
       </div>
     </div>
   );

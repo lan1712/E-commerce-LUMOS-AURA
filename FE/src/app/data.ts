@@ -25,6 +25,8 @@ export interface Product {
   burnTime?: string;
   burnHours?: number;
   size: string;
+  stock?: number;
+  stockQuantity?: number;
   variants?: ProductVariant[];
   selectedVariantId?: number;
 }
@@ -107,4 +109,36 @@ export function isOpeningSaleActive(now = new Date()): boolean {
 
 export function getOpeningSalePrice(value: number): number {
   return isOpeningSaleActive() ? Math.round(value * (1 - OPENING_DISCOUNT_RATE)) : value;
+}
+
+export function getProductStock(product: Product): number | null {
+  if (product.variants?.length) {
+    const variantStocks = product.variants
+      .map((variant) => (typeof variant.stockQuantity === "number" ? Math.max(0, variant.stockQuantity) : null))
+      .filter((stock): stock is number => stock !== null);
+
+    return variantStocks.length ? variantStocks.reduce((sum, stock) => sum + stock, 0) : null;
+  }
+
+  const stock = product.stockQuantity ?? product.stock;
+  return typeof stock === "number" ? Math.max(0, stock) : null;
+}
+
+export function getVariantStock(product: Product, variantId?: number | null): number | null {
+  const variant = product.variants?.find((item) => item.id === variantId)
+    ?? product.variants?.find((item) => item.defaultVariant)
+    ?? product.variants?.[0];
+
+  if (variant) {
+    return typeof variant.stockQuantity === "number" ? Math.max(0, variant.stockQuantity) : null;
+  }
+
+  return getProductStock(product);
+}
+
+export function getStockMessage(stock: number | null): string {
+  if (stock === null) return "Stock available";
+  if (stock <= 0) return "Out of stock";
+  if (stock <= 5) return `Only ${stock} left`;
+  return `${stock} in stock`;
 }

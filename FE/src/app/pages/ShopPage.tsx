@@ -5,7 +5,7 @@ import shopBanner from "../../assets/shop-banner.png";
 import { productsApi } from "../api";
 import { Footer } from "../components/Footer";
 import { ProductImage } from "../components/ProductImage";
-import { formatPrice, getOpeningSalePrice, getOpeningSaleStatus, OPENING_DISCOUNT_LABEL, type Product } from "../data";
+import { formatPrice, getOpeningSalePrice, getOpeningSaleStatus, getProductStock, getStockMessage, OPENING_DISCOUNT_LABEL, type Product } from "../data";
 import { useCart, useNav } from "../context";
 
 const categoryLabels: Record<string, string> = {
@@ -176,6 +176,8 @@ function ProductGridCard({ product, badge }: { product: Product; badge?: string 
   const { navigate } = useNav();
   const salePrice = getOpeningSalePrice(product.price);
   const onSale = salePrice < product.price;
+  const stock = getProductStock(product);
+  const isOutOfStock = stock !== null && stock <= 0;
 
   return (
     <article
@@ -228,16 +230,30 @@ function ProductGridCard({ product, badge }: { product: Product; badge?: string 
             {formatPrice(product.price)}
           </p>
         )}
+        <p
+          className="mt-2"
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600,
+            fontSize: 11,
+            letterSpacing: "0.5px",
+            color: stock !== null && stock <= 5 ? "#9b5c3d" : "#897d73",
+          }}
+        >
+          {getStockMessage(stock)}
+        </p>
         <button
-          className="mt-3 inline-flex h-9 items-center gap-1.5 rounded px-4 transition-opacity hover:opacity-90"
+          className="mt-3 inline-flex h-9 items-center gap-1.5 rounded px-4 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           style={{ backgroundColor: "#6f5847", fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 12, color: "white" }}
           onClick={(event) => {
             event.stopPropagation();
+            if (isOutOfStock) return;
             addToCart(product);
           }}
+          disabled={isOutOfStock}
         >
           <Plus size={12} />
-          Add to cart
+          {isOutOfStock ? "Out of stock" : "Add to cart"}
         </button>
       </div>
     </article>
